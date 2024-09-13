@@ -120,19 +120,19 @@ const run_experiment = () => {
             if (response !== null) {
                 const acc = jsPsych.data.get().last(1).values()[0].correct;
                 if (jsPsych.timelineVariable("Phase") == "Practice" || jsPsych.timelineVariable("Phase") == "Omission") {
-                    return (acc) ? `<p style="color: #40E0D0; font-size: 2rem;">Correcto</p>` :
-                        `<p style="color: #8765c2; font-size: 2rem;">Error</p>`;
+                    return (acc) ? `<p style="color: #ffff00; font-size: 2rem;">Correcto</p>` :
+                        `<p style="color: #ff0000; font-size: 2rem;">Error</p>`;
                 }
                 const bonus = (jsPsych.timelineVariable("condition") == "High" &&
                     (jsPsych.timelineVariable("Phase") != "Extinction" && jsPsych.timelineVariable("Phase") != "Devaluation")) ?
-                    `<div style="background-color: ${(acc) ? `#40E0D0` : `#8765c2`}; color: black; font-size: 2rem; font-weight: 600; padding: 40px;">${(acc) ?
+                    `<div style="background-color: ${(acc) ? `#ffff00` : `#8765c2`}; color: black; font-size: 2rem; font-weight: 600; padding: 40px;">${(acc) ?
                         `¡Puntos Extra!` :
                         `Perdidas Extra`}</div></br>` :
                     '<div></div></br>';
                 const points = jsPsych.data.get().last(1).values()[0].points;
                 const gains = (acc) ?
-                    `<p style="color: #40E0D0; font-size: 2rem;">+${points} puntos</p>` :
-                    `<p style="color: #8765c2; font-size: 2rem;">ERROR: ${points} puntos</p>`
+                    `<p style="color: #ffff00; font-size: 2rem;">+${points} puntos</p>` :
+                    `<p style="color: #ff0000; font-size: 2rem;">ERROR: ${points} puntos</p>`
                 return bonus + gains;
             }
             return "<p style='font-size: 2rem;'>Demasiado lento. Intenta responder más rápido.</p>";
