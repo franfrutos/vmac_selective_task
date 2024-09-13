@@ -229,9 +229,9 @@ const color2hex = (color) => {
     3: singleton, low
 */
 
-// Function for create stimulus trials
-// I need to update this to count distractor color and locations (up, down) repetitions as well as target location repetitions. 
-
+/*TODO: Indicate array structure
+    []
+*/
 const create_trials = (blocks, norew = "NR", prac = true) => {
     if (blocks == 0) return;
     let distractorAbsent, distractorHigh, distractorLow, conditionLog, trials, blockN;
@@ -312,7 +312,6 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         if (phaseTrialLog[j][i].indexOf(3) > -1) return [phaseTrialLog[j][i].indexOf(3), conds[1]];
         return [-1, "Absent"];
     }
-
     for (let j of Object.keys(trialto)) {
         trials = (j == "Practice") ? 24 : 24 * blocks;
         for (let i = 0; i < trials; i++) {
@@ -434,7 +433,7 @@ const studyEnd = (href = null) => {
     }
 }
 
-//Generate a random ID for participants
+// Generate a random ID for participants
 const randomID = (num = 6, lett = 2) => {
     let ID = '';
     let tmp;
@@ -488,7 +487,7 @@ let state = false;
 const animBall = () => {
     const ball = document.querySelector("#virtual-chinrest-circle");
     const dx = -.5; // same as ball_speed parameter
-    const x = parseFloat(ball.style.left); // allow changes bellow one px
+    const x = parseFloat(ball.style.left); // allow changes below one px
     ball.style.left = `${x + dx}px`;
     ball_animation_frame_id = requestAnimationFrame(animBall);
 }
@@ -784,4 +783,24 @@ const prac_c = () => {
     }
     if (h == null) state = true;
     else state = false;
+}
+
+// Return true when same location (up, down) and false when different
+const compare_repsL = (l, c) => {
+    if (c <=-1|| l <= -1) {
+        return false;
+    }
+    console.log(l, c);
+    console.log((l > 2 && c > 2) || (l < 3 && c < 3));
+    return (l > 2 && c > 2) || (l < 3 && c < 3);
+}
+
+// Return true when same color repeat
+const compare_repsC = (l, c) => {
+    if (c == "Absent" || l == "Absent") {
+        return false;
+    }
+    console.log(l, c);
+    console.log(l == c);
+    return l == c;
 }

@@ -19,7 +19,7 @@ const run_experiment = () => {
        Phase: ${norew}. Blocks: ${blocks}. Practice: ${prac}. Condition: ${condition}. norew: ${norew}. gamify: ${gam}.`);
     
     trialObj = create_trials(blocks, norew, prac);
-    const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : ["orange", "blue"];
+    const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : [color2hex("orange"), color2hex("blue")];
     if (blocks != 0) console.log(`Color high is ${colorHigh}. Color low is ${colorLow}.`)
     ID = (urlvar.ID != undefined)? urlvar.ID: randomID();
     if (jatos_run) jatos.studySessionData.subjID = ID; // Saving ID for the next component
@@ -46,13 +46,15 @@ const run_experiment = () => {
     })
 
 
-    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, fial_cal = true, cont = false, phase_out = "VMAC";
+    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, fial_cal = true, cont = false, phase_out = "VMAC", tReps = 0, dLocReps = 0, dColReps = 0, blockPoints = 0;
 
     const trial = {
         type: jsPsychPsychophysics,
         stimuli: () => {
+            if (trialNum == 1) [tReps, dLocReps, dColReps] = [0, 0, 0]; // Reset repetions at the beginning of each block
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg; // If experiment is run in lab, custom px2deg
             const log = jsPsych.timelineVariable("trialLog");
+            console.log(log);
             // Stimulus size is determined to an scaling factor that transform pixels to degrees of visual angle
             return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, jsPsych.timelineVariable("colors"), jsPsych.timelineVariable("orientation"), jsPsych.timelineVariable("Phase"));
         },
@@ -60,7 +62,7 @@ const run_experiment = () => {
             return ["b", "j"];
         },
         background_color: '#000000',
-        canvas_width: () => { // Canvas size depends on stimulus size by default. This prevents canvas to be too small.
+        canvas_width: () => { // Canvas size depends on stimulus size by default. This prevents canvas bieing too small.
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg;
             return sF * 15; 
         },
@@ -69,12 +71,16 @@ const run_experiment = () => {
             return sF * 15;
         },
         data: () => {
-            let color
+            let color, reps;
             if (jsPsych.timelineVariable("Phase") != "Reversal") {
                 color = (jsPsych.timelineVariable("condition") == "High") ? colorHigh : (jsPsych.timelineVariable("condition") == "Low")? colorLow: "none";
             } else {
                 color = (jsPsych.timelineVariable("condition") == "Low") ? colorHigh : (jsPsych.timelineVariable("condition") == "High")? colorLow: "none";
             }
+            reps = [jsPsych.timelineVariable("targetPos"), jsPsych.timelineVariable("singPos"), jsPsych.timelineVariable("condition")];
+            console.log(jsPsych.data.get().last(2).values()[0].tPos);
+            console.log(reps);
+
             return {
                 tPos: jsPsych.timelineVariable("targetPos"),
                 sPos: jsPsych.timelineVariable("singPos"),
@@ -82,6 +88,9 @@ const run_experiment = () => {
                 condition: jsPsych.timelineVariable("condition"),
                 Block_num: (trialNum % 24 == 0 && jsPsych.timelineVariable("Phase").includes("Rewarded"))  ? ++BlockNum : BlockNum,
                 trial_num: ++trialNum,
+                tLocRep: trialNum == 1 ? 0 : compare_repsL(jsPsych.data.get().last(2).values()[0].tPos, reps[0]) ? ++tReps : tReps,
+                dLocRep: trialNum == 1 ? 0 : compare_repsL(jsPsych.data.get().last(2).values()[0].sPos, reps[1]) ? ++dLocReps : dLocReps,
+                dColRep: trialNum == 1 ? 0: compare_repsC(jsPsych.data.get().last(2).values()[0].condition, reps[2]) ? ++dColReps : dColReps,
                 counterbalance: counterbalance,
                 color: color,
             }
@@ -89,16 +98,15 @@ const run_experiment = () => {
         on_finish: (data) => {
             data.correct_response = (jsPsych.timelineVariable("orientation") == "vertical") ? "j" : "b";
             data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
-            data.points = (data.correct) ?
-                compute_points(data.rt, data.condition, data.Phase) :
-                -compute_points(data.rt, data.condition, data.Phase);
+            data.points = (data.correct) ? compute_points(data.rt, data.condition, data.Phase) : -compute_points(data.rt, data.condition, data.Phase);
             total_points = (total_points + data.points <= 0) ? 0 : total_points + data.points;
             data.total_points = total_points;
+            console.log(data);
         },
         trial_duration: () => {
-            //return null;
+            return null
             return 3700;
-        }, //3200
+        }, 
         response_start_time: () => {
             return  1700;
         },
@@ -167,7 +175,33 @@ const run_experiment = () => {
             }
         }
     }
+    
+    // Show conditionally at the end of the block
+    // TODO: Modify this for variable conditions
+    const report_rep = {
+                type: jsPsychHtmlKeyboardResponse,
+        stimulus: () => {
 
+            return `
+            <p>Número de repeticiones T: ${tReps}</p>
+            <p>Número de repeticiones T: ${dLocReps}</p>
+            <p>Número de repeticiones T: ${dColReps}</p>
+            `
+        },
+        choices: [' '],
+        post_trial_gap: 1000,
+    }
+
+    const if_report_rep = {
+        timeline: [report_rep],
+        conditional_function: () => {
+            if ((trialNum % 24 == 0 && trialNum != 24 * blocks) && (trialNum % 24 == 0 && trialNum != (24 * blocks) * 2)) {
+                return true;
+            } else {
+                return false;
+            };
+        }
+    }
 
     const rest = {
         type: jsPsychHtmlKeyboardResponse,
@@ -257,7 +291,6 @@ const run_experiment = () => {
     };
 
     // Conditional 
-
     const if_call = {
         timeline: [call_experimenter],
         conditional_function: () => {
@@ -269,6 +302,8 @@ const run_experiment = () => {
         timeline: [rest],
         conditional_function: () => {
             if ((trialNum % 24 == 0 && trialNum != 24 * blocks) && (trialNum % 24 == 0 && trialNum != (24 * blocks) * 2)) {
+                [tReps, dLocReps, dColReps] = [0, 0, 0]; // Reset repetions at the beginning of each block
+                blockPoints = 0 // Reset block point counter
                 return true;
             } else {
                 return false;
@@ -277,7 +312,7 @@ const run_experiment = () => {
     }
 
     const reward = {
-        timeline: [trial, feedback, if_nodeRest],
+        timeline: [trial, feedback, if_report_rep, if_nodeRest],
         timeline_variables: (blocks != 0) ? trialObj.Rewarded : [],
         repetitions: 1,
         randomize_order: false,
@@ -312,9 +347,8 @@ const run_experiment = () => {
         stimulus: () => {
             if (!fail && phase_out == "VMAC") {
                 return wrapper(`<p>Ahora va a empezar al experimento.</p>
-                   <p>El experimento va a constar de dos fases, una con ${`${blocks.toString()} bloque${(blocks > 1) ? `s` : ``}`} de 24 ensayos (25 minutos).</p>
+                   <p>El experimento va a constar de una tarea con ${`${blocks.toString()} bloque${(blocks > 1) ? `s` : ``}`} de 24 ensayos (25 minutos).</p>
                    <p>Entre bloques podrás descansar si lo necesitas.</p>
-                   <p>La duración aproximada del experimento será de unos X minutos.</p>
                    <p>Pulsa comenzar para empezar el experimento.</p>`, true)
             } else {
                 return `<p>Lamentablemente no has respondido correctamente a alguna de las preguntas.</p>

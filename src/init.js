@@ -21,11 +21,11 @@ jsPsych.data.addProperties({
     rng_seed: seed
 });
 
-const lab = false;
+const lab = true;
 
 console.log(`Random seed: ${seed}`)
 
-const counterbalance = random(0, 6);
+const counterbalance = random(0, 4);
 
 console.log(`Counterbalance: ${counterbalance}`)
 
@@ -48,7 +48,3 @@ const preload = {
     max_load_time: 60000,
     show_detailed_errors: true
 }
-
-
-
-

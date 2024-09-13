@@ -38,7 +38,7 @@ const consentInf = {
         <p style="font-size:16px"><b>Información sobre el estudio y su participación en el mismo</b></p>
         <div style="font-size:16px;line-height:190%;margin:${mWidth};font-size:${sf};line-height:${lh}; text-align:left;">
         <p><b>¿Cuál es el objetivo del estudio?</b><br>
-        El objetivo es este estudio es continuar una investigación ya iniciada sobre la relación entre procesos de distracción visual y memoria, donde se busca estudiar posibles sustratos comunes a ambos procesos. Este estudio lo dirige el Dr. Juan Lupiáñez y su equipo colaborador. El estudio tendrá lugar en modalidad online, en el ordenador personal de la persona que realiza el estudio. 
+        El objetivo de este estudio es continuar una investigación ya iniciada sobre la relación entre procesos de distracción visual y memoria, donde se busca estudiar posibles sustratos comunes a ambos procesos. Este estudio lo dirige el Dr. Juan Lupiáñez y su equipo colaborador. El estudio tendrá lugar en modalidad online, en el ordenador personal de la persona que realiza el estudio. 
         </p>
         <p><b>¿Qué procedimientos llevaré a cabo?</b><br>
         Su participación consistirá en contestar algunas preguntas y realizar sencillas tareas de ordenador en las que debe discriminar y responder a distintos estímulos mientras registramos el tiempo que tarda en emitir una respuesta a cada 
@@ -405,15 +405,15 @@ const instructions_cal = {
             </div>
         </div>
         <p>En caso de que no tengas ninguna tarjeta, también es posible utilizar una regla. Si optas por una regla, deberás ajustar la tarjeta para que tenga una anchura de 85.6 milímetros.</p>`),
-        wrapper(`<p>En la segunda prueba vamos a estimar dónde se encuentra tu punto ciego visual, cuya posición va a depender de la distancia a la que te encuentres de la pantalla. Por tanto, esta prueba es fundamental para poder ajustar el tamaño de los estímulos en pantalla.</p>
-        <p>Para que puedas familirarizarte con la tarea antes de la calibración, aquí te presentamos el procedimiento que vas a tener que llevar a cabo para que puedas practicar.</p>
+        wrapper(`<p>En la segunda prueba vamos a estimar dónde se encuentra tu punto ciego visual, cuya posición va a depender de la distancia a la que te encuentres de la pantalla. Por tanto, esta prueba es fundamental para poder ajustar el tamaño de los estímulos de la tarea en pantalla.</p>
+        <p>Para que puedas familirarizarte con la tarea antes de la calibración, aquí te presentamos el procedimiento que vas a tener que llevar a cabo para que puedas practicar. Asegurate de estar en una posición correcta (espalda erguida y la cabeza centrada en la pantalla).</p>
         <p>Intenta encontrar tu punto ciego antes de empezar la calibración:</p>
         <ol style="max-width:100%;">
         <li>Pon la mano izquierda en la <b>barra espaciadora</b>.</li>
         <li>Tápate el ojo derecho con la mano derecha.</li>
         <li>Atiende al cuadrado negro con el ojo izquierdo. No dejes de mirarlo.</li>
         <li>Cuando pulses la barra espaciadora el <b style = "color:red;">círculo rojo</b> comenzará a moverse. Atiende al círculo de reojo.</li>
-        <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece.</li>
+        <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, <b>al menos durante 1 segundo</b>), no en cueanto desaparezca.</li>
         </ol>
         <div id="virtual-chinrest-circle" style="position: absolute;background-color: #f00; width: 30px; height: 30px; border-radius:50px;"></div>
         <div id="virtual-chinrest-square" style="position: absolute;background-color: #000; width:30px; height:30px"></div>
@@ -459,7 +459,7 @@ const full_off = {
 // Virtual chin-rest
 const resize = {
     type: jsPsychVirtualChinrest,
-    blindspot_reps: 6,
+    blindspot_reps: 5,
     resize_units: "none",
     post_trial_gap: 500,
     ball_speed: .5,
@@ -478,7 +478,7 @@ const resize = {
     <li>Tápate el ojo derecho con la mano derecha.</li>
     <li>Atiende al cuadrado negro con el ojo izquierdo. No dejes de mirarlo.</li>
     <li>Cuando pulses la barra espaciadora el <b style = "color:red;">círculo rojo</b> comenzará a moverse. Atiendelo de reojo.</li>
-    <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece.</li>
+    <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, al menos durante 1 segundo, no en cuanto desaparezca.</li>
     </div>
     </ol>
     <p style = "margin-bottom: 30px;">Pulsa la barra espaciadora para empezar.</p>`,
@@ -560,14 +560,12 @@ const call_experimenter = {
     choices: ['s']
 };
 
-
-
 const instructions_exp = {
     type: jsPsychInstructions,
     pages: () => {
         const urlvar = (jatos_run) ? jatos.urlQueryParameters : jsPsych.data.urlVariables();
         const blocks = (Number(urlvar.blocks) == 0) ? 0 : (!isNaN(Number(urlvar.blocks))) ? Number(urlvar.blocks) : 12;
-        const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : ["orange", "blue"];
+        const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : ["orange", "blue"].map(color2hex);
         const gam = true;
 
         let out = [
@@ -624,7 +622,6 @@ const instructions_exp = {
     //post_trial_gap: 1000,
 }
 
-
 const pre_exp = {
     type: jsPsychHtmlKeyboardResponse,
     stimulus: `<p>Estas a punto de empezar el experimento, recuerda:</p>
@@ -663,7 +660,6 @@ const slider_instr = {
     },
     choices: ["Continuar"]
 }
-
 
 const questions = {
     type: jsPsychSurveyHtmlForm,
