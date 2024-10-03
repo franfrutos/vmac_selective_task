@@ -116,6 +116,20 @@ const draw_diamond = (length, line_w, color, x, y) => {
     }
 };
 
+/* const draw_square = (length, line_w, color, x, y) => {
+    return {
+        obj_type: 'rect',
+        width: length,
+        height: length,
+        line_width: line_w,
+        line_color: color,
+        show_start_time: 1700,
+        origin_center: true,
+        startX: x,
+        startY: y,
+    };
+} */
+
 const create = (shape, radius, width, color, x, y, orientation) => {
     if (shape == "diamond") {
         return [draw_diamond(radius * 2, width, color, x, y), draw_line(radius, width / 2, orientation, x, y)];
@@ -229,9 +243,19 @@ const color2hex = (color) => {
     3: singleton, low
 */
 
-/*TODO: Indicate array structure
-    []
+/* Array structure
+    [
+        0, // Top left
+        1, // Top
+        2, // Top right
+        3,
+        4,
+        5
+    ]
 */
+
+// Function to create trials
+// Function to create trials
 const create_trials = (blocks, norew = "NR", prac = true) => {
     if (blocks == 0) return;
     let distractorAbsent, distractorHigh, distractorLow, conditionLog, trials, blockN;
@@ -252,36 +276,36 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
             // Change this to include more practice trials
             if (j == "Practice" && i === 0) {
                 distractorAbsent = zeros(Math.floor(24), 6); // Singleton Absent
-                for (let i = 0; i < distractorAbsent.length; i++) {
-                    distractorAbsent[i][random(0, 6)] = 2;
+                for (let k = 0; k < distractorAbsent.length; k++) {
+                    distractorAbsent[k][random(0, 6)] = 2;
                 }
                 conditionLog = distractorAbsent;
                 break;
             }
 
-            distractorHigh = zeros(Math.floor(10), 6); //High-value
+            // Trial structure
+            distractorHigh = zeros(Math.floor(10), 6); // High-value
             distractorLow = zeros(Math.floor(10), 6); // Low-value
             distractorAbsent = zeros(Math.floor(4), 6); // Singleton Absent
 
-
-            // Filling distractor absent with targets (2s = target):
-            for (let i = 0; i < distractorAbsent.length; i++) {
-                distractorAbsent[i][random(0, 6)] = 2;
+            // Filling distractor absent trials with targets (2s = target):
+            for (let k = 0; k < distractorAbsent.length; k++) {
+                distractorAbsent[k][random(0, 6)] = 2;
             }
 
-            // Filling distractactor High (1s = singleton high; 2s = target):
-            for (let i = 0; i < distractorHigh.length; i++) {
-                distractorHigh[i][random(0, 6)] = 2;
-                distractorHigh[i][random(0, 6, [distractorHigh[i].indexOf(2)])] = 1;
+            // Filling distractor High trials (1s = singleton high; 2s = target):
+            for (let k = 0; k < distractorHigh.length; k++) {
+                distractorHigh[k][random(0, 6)] = 2;
+                distractorHigh[k][random(0, 6, [distractorHigh[k].indexOf(2)])] = 1;
             }
 
-            // Filling distractor low (3s = singleton low; 2s = target):
-            for (let i = 0; i < distractorLow.length; i++) {
-                distractorLow[i][random(0, 6)] = 2;
-                distractorLow[i][random(0, 6, [distractorLow[i].indexOf(2)])] = 3;
+            // Filling distractor Low trials (3s = singleton low; 2s = target):
+            for (let k = 0; k < distractorLow.length; k++) {
+                distractorLow[k][random(0, 6)] = 2;
+                distractorLow[k][random(0, 6, [distractorLow[k].indexOf(2)])] = 3;
             }
 
-            // Combining the arrays and randomize order:
+            // Combining arrays and randomizing order:
             conditionLog = conditionLog.concat(
                 shuffle(
                     [].concat(distractorAbsent,
@@ -292,42 +316,151 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         phaseLog[j].push(conditionLog);
     }
 
-    // Object with the final structure:
+    // Final structure object:
     let phaseTrialLog = {};
     for (let phase of Object.keys(phaseLog)) {
         phaseTrialLog[phase] = [].concat(...phaseLog[phase]);
     }
 
-    // Setting timeline array
+    // Configuring the timeline array
     let trialto = {};
     for (let phase of Object.keys(phaseLog)) {
         trialto[phase] = [];
     }
 
-    // Function to gather information about VMAC trials
-    // Change this to also update a counter based on distractor location, color o target location
+    // Function to get information about VMAC trials
     const getSing = (j, i) => {
         let conds = (j == "Reversal") ? ["Low", "High"] : ["High", "Low"];
         if (phaseTrialLog[j][i].indexOf(1) > -1) return [phaseTrialLog[j][i].indexOf(1), conds[0]];
         if (phaseTrialLog[j][i].indexOf(3) > -1) return [phaseTrialLog[j][i].indexOf(3), conds[1]];
         return [-1, "Absent"];
     }
+
     for (let j of Object.keys(trialto)) {
         trials = (j == "Practice") ? 24 : 24 * blocks;
+
+        // List to store indices of trials where the distractor is present
+        let dpInd = [];
+
         for (let i = 0; i < trials; i++) {
-            trialto[j].push({
+            let singInfo = getSing(j, i);
+            let singPos = singInfo[0];
+            let condition = singInfo[1];
+
+            // Creating the trial object
+            let trial = {
                 trialLog: phaseTrialLog[j][i],
                 targetPos: phaseTrialLog[j][i].indexOf(2),
-                singPos: getSing(j, i)[0],
+                singPos: singPos,
                 orientation: shuffle(["horizontal", "vertical"])[0],
-                condition: getSing(j, i)[1],
+                condition: condition,
                 Phase: j,
                 counterbalance: counterbalance,
                 colors: pickColor(counterbalance),
-            })
+                reportTrial: false, // Initially, reportTrial is false
+            };
+
+            // If distractor is present, add index to the list
+            if (singPos !== -1) {
+                dpInd.push(i);
+            }
+
+            trialto[j].push(trial);
+        }
+
+        // Now, mark report trials according to specifications
+        if (j !== "Practice") {
+            markReportTrials(trialto[j], dpInd);
         }
     }
+
+    // Console.log to verify report trials
+    for (let phase of Object.keys(trialto)) {
+        console.log(`Report trials in phase "${phase}":`);
+        let reportTrialIndices = [];
+        for (let i = 0; i < trialto[phase].length; i++) {
+            if (trialto[phase][i].reportTrial) {
+                reportTrialIndices.push(i);
+            }
+        }
+        console.log(reportTrialIndices);
+    }
+
     return trialto;
+}
+
+// Function to mark report trials
+const markReportTrials = (trialArray, dpInd) => {
+    const totalTrials = trialArray.length;
+    const numBlocks = Math.floor(totalTrials / 48);
+    const trialsPerBlock = 48;
+
+    for (let b = 0; b < numBlocks; b++) {
+        const bStart = b * trialsPerBlock;
+        const bEnd = bStart + trialsPerBlock;
+
+        // For the first 24 trials, ensure at least one report trial
+        processBlock(trialArray, dpInd, bStart, bStart + 24, false, true);
+
+        // For the last 24 trials, ensure a report trial in the last 12 trials
+        processBlock(trialArray, dpInd, bStart + 24, bEnd, true);
+    }
+
+    // Process remaining trials if less than 48
+    const remainingTrials = totalTrials % 48;
+    if (remainingTrials > 0) {
+        const remainingStart = numBlocks * trialsPerBlock;
+        processBlock(trialArray, dpInd, remainingStart, totalTrials, false, true);
+    }
+}
+
+const processBlock = (trialArray, dpInd, bStart, bEnd, mustHaveLast12, mustHaveEither12 = false) => {
+    // Divide the block into two sub-blocks of 12 trials
+    const first12Start = bStart;
+    const first12End = Math.min(bStart + 12, bEnd);
+    const last12Start = first12End;
+    const last12End = bEnd;
+
+    let includeFirst12 = false;
+    let includeLast12 = false;
+
+    if (mustHaveEither12) {
+        // Randomly decide which sub-block will have the mandatory report trial
+        const subBlockToForce = random(0, 2); // 0 or 1
+        if (subBlockToForce === 0) {
+            includeFirst12 = true;
+        } else {
+            includeLast12 = true;
+        }
+    }
+
+    // For sub-blocks where we don't force inclusion, decide randomly
+    if (!includeFirst12) {
+        includeFirst12 = random(0, 2) === 0; // 50% chance
+    }
+
+    if (!includeLast12 && !mustHaveLast12) {
+        includeLast12 = random(0, 2) === 0; // 50% chance
+    } else if (mustHaveLast12) {
+        includeLast12 = true; // Force inclusion if required
+    }
+
+    // Mark report trials in sub-blocks
+    markReportInSubBlock(trialArray, dpInd, first12Start, first12End, includeFirst12);
+    markReportInSubBlock(trialArray, dpInd, last12Start, last12End, includeLast12);
+}
+
+const markReportInSubBlock = (trialArray, dpInd, start, end, mustHaveReport) => {
+    // Get indices of trials with distractor present in the sub-block
+    const subBlockDPInd = dpInd.filter(index => index >= start && index < end);
+
+    // If we must include a report trial
+    if (mustHaveReport) {
+        // Select a random trial among those with distractor present
+        let shuffledIndices = shuffle(subBlockDPInd);
+        let tIndex = shuffledIndices[0];
+        trialArray[tIndex].reportTrial = true;
+    }
 }
 
 // Function to compute the amount of points earned in each trial
@@ -451,9 +584,9 @@ const randomID = (num = 6, lett = 2) => {
 
   const assign_condition = (url_cond) => {
     if (jatos_run) {
-        condition = getCond(20);
+        condition = getCond(90);
     } else {
-        condition = (url_cond != undefined) ? capitalize(urlvar.condition) : "A1";
+        condition = (url_cond != undefined) ? capitalize(urlvar.condition) : "A";
     }
 
     if (jatos_run && !condition) {
@@ -783,24 +916,4 @@ const prac_c = () => {
     }
     if (h == null) state = true;
     else state = false;
-}
-
-// Return true when same location (up, down) and false when different
-const compare_repsL = (l, c) => {
-    if (c <=-1|| l <= -1) {
-        return false;
-    }
-    console.log(l, c);
-    console.log((l > 2 && c > 2) || (l < 3 && c < 3));
-    return (l > 2 && c > 2) || (l < 3 && c < 3);
-}
-
-// Return true when same color repeat
-const compare_repsC = (l, c) => {
-    if (c == "Absent" || l == "Absent") {
-        return false;
-    }
-    console.log(l, c);
-    console.log(l == c);
-    return l == c;
 }
