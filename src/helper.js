@@ -69,13 +69,27 @@ const draw_cross = (radius, line_w) => {
 
 }
 
-const draw_circle = (radius, line_w, color, x, y) => {
+const draw_circle = (radius, line_w, color, x, y, report) => {
     return {
         obj_type: 'circle',
         radius: radius,
         line_width: line_w,
         line_color: color,
-        show_start_time: 1700,
+        show_start_time: (!report)? 1700 : 0,
+        origin_center: true,
+        startX: x,
+        startY: y,
+    };
+}
+
+const draw_circle2 = (radius, line_w, color, x, y) => {
+    return {
+        obj_type: 'circle',
+        radius: radius,
+        line_width: line_w,
+        line_color: color2hex(color),
+        fill_color: color2hex(color),
+        show_start_time: 0,
         origin_center: true,
         startX: x,
         startY: y,
@@ -116,6 +130,18 @@ const draw_diamond = (length, line_w, color, x, y) => {
     }
 };
 
+const draw_text = (x, y, number) => {
+    return {
+        obj_type: 'text',
+        content: number.toString(),
+        text_color: color2hex("gray"),
+        font_size:"30px",
+        origin_center: true,
+        startX: x,
+        startY: y,
+    };
+}
+
 /* const draw_square = (length, line_w, color, x, y) => {
     return {
         obj_type: 'rect',
@@ -153,17 +179,27 @@ const set_attributes = (s, colors, targetOri) => {
     }
 }
 
-const draw_display = (radius, width, rho, log, colors, targetOri) => {
-
-    const arr = [];
-
-    arr.push(...draw_cross(radius, width / 2));
+const draw_display = (radius, width, rho, log, colors, targetOri, report_t = false) => {
 
     const n_display = 6;
     const phi0 = 45;
-
+    const arr = [];
     const coordinates = xy_circle(rho, n = n_display);
     let stimuli, x, y;
+
+    console.log(report_t);
+    if (report_t) {
+        for (let i = 0; i < n_display; i++) {
+            [x, y] = coordinates[i];
+            // Location report trials
+            stimuli = [draw_circle(radius, width, color2hex("gray"), x, y, report_t),
+            draw_text(x, y, i + 1)];
+            arr.push(...stimuli);
+        }
+        return arr;
+    }
+
+    arr.push(...draw_cross(radius, width / 2));
 
     for (let i = 0; i < n_display; i++) {
         [x, y] = coordinates[i];
@@ -235,12 +271,12 @@ const color2hex = (color) => {
 }
 
 // Experiment structure
-
 /* Coding scheme for the relevant shape target/singleton color in the VMAC phase:
-    0: distractor, non-singleton
-    1: singleton, high
-    2: target
-    3: singleton, low
+        0: distractor, non-singleton
+        1: singleton, high
+        2: target
+        3: singleton, low
+
 */
 
 /* Array structure
@@ -255,7 +291,7 @@ const color2hex = (color) => {
 */
 
 // Function to create trials
-// Function to create trials
+// Modfied this to include three levels of lightness
 const create_trials = (blocks, norew = "NR", prac = true) => {
     if (blocks == 0) return;
     let distractorAbsent, distractorHigh, distractorLow, conditionLog, trials, blockN;
@@ -284,25 +320,26 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
             }
 
             // Trial structure
-            distractorHigh = zeros(Math.floor(10), 6); // High-value
+            distractorHigh = zeros(Math.floor(10), 6); //High-value
             distractorLow = zeros(Math.floor(10), 6); // Low-value
             distractorAbsent = zeros(Math.floor(4), 6); // Singleton Absent
 
-            // Filling distractor absent trials with targets (2s = target):
-            for (let k = 0; k < distractorAbsent.length; k++) {
-                distractorAbsent[k][random(0, 6)] = 2;
+
+            // Filling distractor absent with targets (2s = target):
+            for (let i = 0; i < distractorAbsent.length; i++) {
+                distractorAbsent[i][random(0, 6)] = 2;
             }
 
-            // Filling distractor High trials (1s = singleton high; 2s = target):
-            for (let k = 0; k < distractorHigh.length; k++) {
-                distractorHigh[k][random(0, 6)] = 2;
-                distractorHigh[k][random(0, 6, [distractorHigh[k].indexOf(2)])] = 1;
+            // Filling distractactor High (1s = singleton high; 2s = target):
+            for (let i = 0; i < distractorHigh.length; i++) {
+                distractorHigh[i][random(0, 6)] = 2;
+                distractorHigh[i][random(0, 6, [distractorHigh[i].indexOf(2)])] = 1;
             }
 
-            // Filling distractor Low trials (3s = singleton low; 2s = target):
-            for (let k = 0; k < distractorLow.length; k++) {
-                distractorLow[k][random(0, 6)] = 2;
-                distractorLow[k][random(0, 6, [distractorLow[k].indexOf(2)])] = 3;
+            // Filling distractor low (3s = singleton low; 2s = target):
+            for (let i = 0; i < distractorLow.length; i++) {
+                distractorLow[i][random(0, 6)] = 2;
+                distractorLow[i][random(0, 6, [distractorLow[i].indexOf(2)])] = 3;
             }
 
             // Combining arrays and randomizing order:
@@ -343,25 +380,25 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         let dpInd = [];
 
         for (let i = 0; i < trials; i++) {
+            // Collecting information about singletons
             let singInfo = getSing(j, i);
-            let singPos = singInfo[0];
-            let condition = singInfo[1];
 
             // Creating the trial object
             let trial = {
                 trialLog: phaseTrialLog[j][i],
                 targetPos: phaseTrialLog[j][i].indexOf(2),
-                singPos: singPos,
+                singPos: singInfo[0],
                 orientation: shuffle(["horizontal", "vertical"])[0],
-                condition: condition,
+                condition: singInfo[1],
                 Phase: j,
                 counterbalance: counterbalance,
                 colors: pickColor(counterbalance),
                 reportTrial: false, // Initially, reportTrial is false
             };
 
+            // Show report trials position
             // If distractor is present, add index to the list
-            if (singPos !== -1) {
+            if (singInfo[0] !== -1) {
                 dpInd.push(i);
             }
 
@@ -380,12 +417,13 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         let reportTrialIndices = [];
         for (let i = 0; i < trialto[phase].length; i++) {
             if (trialto[phase][i].reportTrial) {
-                reportTrialIndices.push(i);
+                reportTrialIndices.push(i+1);
             }
         }
         console.log(reportTrialIndices);
     }
 
+    console.log(trialto);
     return trialto;
 }
 

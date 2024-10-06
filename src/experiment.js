@@ -54,7 +54,10 @@ const run_experiment = () => {
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg; // If experiment is run in lab, custom px2deg
             const log = jsPsych.timelineVariable("trialLog");
             // Stimulus size is determined to an scaling factor that transform pixels to degrees of visual angle
-            return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, jsPsych.timelineVariable("colors"), jsPsych.timelineVariable("orientation"), jsPsych.timelineVariable("Phase"));
+            return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log,
+                jsPsych.timelineVariable("colors"),
+                jsPsych.timelineVariable("orientation"),
+                false);
         },
         choices: () => {
             return ["b", "j"];
@@ -96,7 +99,6 @@ const run_experiment = () => {
             pracCorr = sumCorr / trialNum;
             // Report trial?
             report_trial = jsPsych.timelineVariable("reportTrial");
-            console.log(report_trial, trialNum);
         },
         trial_duration: () => {
             return 3700;
@@ -138,6 +140,7 @@ const run_experiment = () => {
         trial_duration: 700,
         choices: ["NO_KEYS"],
         post_trial_gap: () => {
+            if (report_trial) return 1000
             const phase = jsPsych.timelineVariable("Phase");
             if (phase == "Practice") {
                 if (trialNum > 9 & pracCorr > .9) {
@@ -184,16 +187,47 @@ const run_experiment = () => {
     // Show conditionally at the end of the block
     // TODO: Modify this for variable conditions
     const report_rep = {
-                type: jsPsychHtmlKeyboardResponse,
-        stimulus: () => {
-
-            return `
-            Report trial
-            `
+        type: jsPsychPsychophysics,
+        stimuli: () => {
+            const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg; // If experiment is run in lab, custom px2deg
+            if (task == "L") {
+                // Report location
+                return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, jsPsych.timelineVariable("colors"),
+                    jsPsych.timelineVariable("orientation"), true);
+            } else {
+                // Report color
+                return [
+                    draw_circle2(1.15 * sF, 0.2 * sF, colorHigh, +(3*sF), 0),
+                    draw_circle2(1.15 * sF, 0.2 * sF, colorLow, -(3*sF), 0),
+                ]
+            }
         },
-        choices: [' '],
-        post_trial_gap: 1000,
-    }
+        background_color: '#000000',
+        choices: () => {
+            if (task == "L") {
+                return ["1", "2", "3", "4", "5", "6"];
+            }
+            return ["c", "m"];
+        },
+        canvas_width: () => { // Canvas size depends on stimulus size by default.
+            const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg;
+            return sF * 15; 
+        },
+        canvas_height: () => {
+            const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg;
+            return sF * 15;
+        },
+        on_finish: (data) => {
+            if (task == "L") {
+                data.correct_response = jsPsych.timelineVariable("singPos");
+            } else {
+                data.correct_response = (jsPsych.timelineVariable("condition") == "High") ? "c": "m";
+            }
+            data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
+            report_trial = jsPsych.timelineVariable("reportTrial");
+        },
+
+    };
 
     const if_report_rep = {
         timeline: [report_rep],
@@ -215,7 +249,7 @@ const run_experiment = () => {
                 "";
 
             return `
-                       <p>Has completado ${BlockNum} de ${blocks} Bloques.</p>
+                       <p>Has completado ${BlockNum} de ${blocks} bloques.</p>
                        ${`<p>Llevas ${formatting(total_points.toString())} puntos acumulados.</p>`}
                        ${(gam) ? disp_medals + next : ""}
                        <p>Pulsa la barra espaciadora cuando quieras continuar.</p>
