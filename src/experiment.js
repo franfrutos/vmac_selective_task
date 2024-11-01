@@ -32,7 +32,7 @@ const run_experiment = () => {
         func: () => check_limit(),
     }
 
-    // Assign condition after VMAC practice is finished:
+    // Assign condition after VMAC practice is finished
     const cond_func = {
         type: jsPsychCallFunction,
         func: () => assign_condition(urlvar.condition),
@@ -101,7 +101,7 @@ const run_experiment = () => {
             report_trial = jsPsych.timelineVariable("reportTrial");
         },
         trial_duration: () => {
-            return 3700;
+            return (jsPsych.timelineVariable("Phase") == "Practice2")? 10700: 3700;
         }, 
         response_start_time: () => {
             return  1700;
@@ -115,7 +115,7 @@ const run_experiment = () => {
             const response = jsPsych.data.get().last(1).values()[0].key_press;
             if (response !== null) {
                 const acc = jsPsych.data.get().last(1).values()[0].correct;
-                if (jsPsych.timelineVariable("Phase") == "Practice" || jsPsych.timelineVariable("Phase") == "Omission") {
+                if (jsPsych.timelineVariable("Phase") == "Omission" || jsPsych.timelineVariable("Phase").includes("Practice")) {
                     return (acc) ? `<p style="color: #ffff00; font-size: 2rem;">Correcto</p>` :
                         `<p style="color: #ff0000; font-size: 2rem;">Error</p>`;
                 }
@@ -140,7 +140,7 @@ const run_experiment = () => {
         trial_duration: 700,
         choices: ["NO_KEYS"],
         post_trial_gap: () => {
-            if (report_trial) return 1000
+            if (report_trial) return 500
             const phase = jsPsych.timelineVariable("Phase");
             if (phase == "Practice") {
                 if (trialNum > 9 & pracCorr > .9) {
@@ -159,8 +159,10 @@ const run_experiment = () => {
         },
         on_finish: () => {
             const phase = jsPsych.timelineVariable("Phase");
-            if (phase == "Practice") {
-                if (trialNum > 9 & pracCorr > .9) {
+            // Maybe move Practice2 and Practice3 to report_rep
+            if (phase == "Practice" || phase == "Practice2" || phase == "Practice3") {
+                console.log(phase); console.log(trialNum);
+                if ((trialNum > 9 & pracCorr > .9) & phase == "Practice") {
                     console.log('Participant reach threshold before ending the practice');
                     trialNum = 0;
                     BlockNum = 0;
@@ -168,7 +170,7 @@ const run_experiment = () => {
                     document.body.style.cursor = 'auto';
                     jsPsych.endCurrentTimeline();
                 }
-                if (trialNum == 24) {
+                if (trialNum == 24 & phase == "Practice") {
                     trialNum = 0;
                     BlockNum = 0;
                     document.body.classList.remove("black");
@@ -185,17 +187,19 @@ const run_experiment = () => {
     }
     
     // Show conditionally at the end of the block
-    // TODO: Modify this for variable conditions
     const report_rep = {
         type: jsPsychPsychophysics,
         stimuli: () => {
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg; // If experiment is run in lab, custom px2deg
             if (task == "L") {
+                const log = [0, 0, 0, 0, 0, 0];
                 // Report location
-                return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, jsPsych.timelineVariable("colors"),
-                    jsPsych.timelineVariable("orientation"), true);
+                return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, // log is not necessary, but throw error if not provided :p
+                    jsPsych.timelineVariable("colors"),
+                    jsPsych.timelineVariable("orientation"), report_t = true);
             } else {
-                // Report color
+                // Report color:
+                // Color position should be random or not?
                 return [
                     draw_circle2(1.15 * sF, 0.2 * sF, colorHigh, +(3*sF), 0),
                     draw_circle2(1.15 * sF, 0.2 * sF, colorLow, -(3*sF), 0),
@@ -220,17 +224,37 @@ const run_experiment = () => {
         on_finish: (data) => {
             if (task == "L") {
                 data.correct_response = jsPsych.timelineVariable("singPos");
+                data.correct = (data.correct_response == data.response) ? 1 : 0;
             } else {
-                data.correct_response = (jsPsych.timelineVariable("condition") == "High") ? "c": "m";
+                data.correct_response = (jsPsych.timelineVariable("condition") == "High") ? "c" : "m";
+                data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
             }
-            data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
             report_trial = jsPsych.timelineVariable("reportTrial");
+            phase = jsPsych.timelineVariable("Phase");
+            if (trialNum == 10 & phase == "Practice2") {
+                    trialNum = 0;
+                    BlockNum = 0;
+                }
+                if (trialNum == 20 & phase == "Practice3") {
+                    trialNum = 0;
+                    BlockNum = 0;
+                    document.body.classList.remove("black");
+                    document.body.style.cursor = 'auto';
+                }
         },
 
     };
 
+    const pre_report = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: '<div style="font-size: 100px; text-align: center;">R</div>',
+        choices: "NO_KEYS",
+        trial_duration: 1000
+    };
+
+    // First, letter R indicate that there is a report trial. Then, they have to respond
     const if_report_rep = {
-        timeline: [report_rep],
+        timeline: [pre_report, report_rep],
         conditional_function: () => {
             return report_trial;
         }
@@ -377,6 +401,9 @@ const run_experiment = () => {
                    <p>El experimento va a constar de una tarea con ${`${blocks.toString()} bloque${(blocks > 1) ? `s` : ``}`} de 24 ensayos (25 minutos).</p>
                    <p>Entre bloques podrás descansar si lo necesitas.</p>
                    <p>Pulsa comenzar para empezar el experimento.</p>`, true)
+            } else if (!fail && phase_out == "Practice2") {
+                return `<p>Has respondido correctamente a las preguntas.</p>
+                <p>Pulsa <b>comenzar</b> para empezar con la práctica.</p>`;
             } else {
                 return `<p>Lamentablemente no has respondido correctamente a alguna de las preguntas.</p>
                    <p>Por favor, lee las instrucciones con detenimiento.</p>`
@@ -389,6 +416,26 @@ const run_experiment = () => {
             return (!fail) ? 1000 : 0;
         }
     }
+
+        const repeatPrac = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: () => {
+            if (!fail && phase_out == "VMAC") {
+                return wrapper(`<p>Has respondido correctamente a todas las preguntas, pulsa comenzar para empezar con la práctica.</p>`, true)
+            } else {
+                return `<p>Lamentablemente no has respondido correctamente a alguna de las preguntas.</p>
+                   <p>Por favor, lee las instrucciones con detenimiento.</p>`
+            }
+        },
+        choices: () => {
+            return (!fail) ? ["Comenzar"] : ["Volver a leer las instrucciones"];
+        },
+        post_trial_gap: () => {
+            return (!fail) ? 1000 : 0;
+        }
+    }
+
+
 
     const repeat_cal = {
         type: jsPsychHtmlButtonResponse,
@@ -410,6 +457,8 @@ const run_experiment = () => {
             return fail_cal;
         }
     }
+
+    // Practice 1
     const practice = {
         timeline: [trial, feedback],
         timeline_variables: (blocks != 0) ? trialObj.Practice : [],
@@ -420,7 +469,37 @@ const run_experiment = () => {
     const if_practice = {
         timeline: [practice],
         conditional_function: () => {
-            return prac; // do practice if there are less than 10 trials remaining or less than 0.75 accuracy
+            return prac; 
+        }
+    }
+    
+    // Practice 2 (First practice for dual task)
+    const practice2 = {
+        timeline: [trial, feedback, if_report_rep],
+        timeline_variables: (blocks != 0) ? trialObj.Practice2 : [],
+        repetitions: 1,
+        randomize_order: false,
+    }
+
+    const if_practice2 = {
+        timeline: [practice2],
+        conditional_function: () => {
+            return prac;
+        }
+    }
+
+    // TODO: Practice 3 (Second practice for dual task, normal speed). 
+    const practice3 = {
+        timeline: [trial, feedback, if_report_rep],
+        timeline_variables: (blocks != 0) ? trialObj.Practice3 : [],
+        repetitions: 1,
+        randomize_order: false,
+    }
+
+    const if_practice3 = {
+        timeline: [practice3],
+        conditional_function: () => {
+            return prac;
         }
     }
 
@@ -440,12 +519,68 @@ const run_experiment = () => {
         randomize_order: false,
     }
 
-    // I need to include practice trials for both the location and the color task
     const procedure_prac = {
         timeline: [instructions_prac, pre_prac, if_practice],
         repetitions: 1,
         randomize_order: false,
         post_trial_gap: () => { if (prac == false) return 1000 },
+    }
+    
+    const post_inst_prac2 = {
+        type: jsPsychSurveyMultiChoice,
+        questions: () => {
+            const arr = shuffle([
+                            {
+                    prompt: "¿Cuando ocurrirán estos ensayos de reporte?",
+                    name: 'whenReport',
+                    options: shuffle(['Después de cada ensayo de la tarea principal', 'Solo cuando se me presente la letra R en solitario después de un ensayo', 'Siempre que aparezca un distractor en un color diferente en la tarea principal']),
+                    required: true,
+                    horizontal: false
+                },
+                {
+                    prompt: "¿Qué tienes que reportar en los ensayos de reporte?",
+                    name: 'task',
+                    options: shuffle(['El color del distractor del ensayo anterior', 'La posición del distractor del ensayo anterior', 'La posición del rombo en el ensayo anterior', 'El color del rombo en el ensayo anterior']),
+                    required: true,
+                    horizontal: false
+                }
+            ]);
+            return arr
+        },
+        on_finish: (data) => {
+            const resp = data.response;
+            fail = resp.whenReport != 'Solo cuando se me presente la letra R en solitario después de un ensayo' || resp.task != 'La posición del distractor del ensayo anterior';
+            phase_out = "Practice2";
+        }
+    };
+    
+    const procedure_inst_prac2 = {
+        timeline: [instructions_prac2, post_inst_prac2, repeat],
+        loop_function: () => {
+            return fail;
+        },
+        on_finish: () => {
+            cont = (!fail) ? true : false;
+            if (!fail && cont) {
+                document.body.classList.add("black");
+                document.body.style.cursor = 'none';
+            }
+        },
+        //post_trial_gap: 0,
+    }
+
+    const procedure_prac2 = {
+        timeline: [procedure_inst_prac2, pre_prac, if_practice2, pre_prac2, if_practice3],
+        repetitions: 1,
+        randomize_order: false,
+        //post_trial_gap: () => { if (prac == false) return 1000 },
+        on_finish: () => {
+            cont = (!fail) ? true : false;
+            if (!fail && cont) {
+                document.body.classList.add("black");
+                document.body.style.cursor = 'none';
+            }
+        },
     }
 
 
@@ -484,6 +619,10 @@ const run_experiment = () => {
         }
     };
 
+    // Makes this conditional as a function of jatos variable
+
+
+
     const procedure_inst_exp = {
         timeline: [instructions_exp, post_inst_exp, repeat],
         loop_function: () => {
@@ -498,7 +637,6 @@ const run_experiment = () => {
         },
         //post_trial_gap: 0,
     }
-
 
 
     const slide = {
@@ -617,7 +755,7 @@ const run_experiment = () => {
         choices: ["Salir del experimento"]
     }
 
-    timeline.push(check_cond, check, preload, consent_proc, procedure_cal, procedure_prac, cond_func, procedure_exp, full_off, questions, if_download);
+    timeline.push(check_cond, check, preload, consent_proc, procedure_cal, procedure_prac, procedure_prac2, cond_func, procedure_exp, full_off, questions, if_download);
 
     jsPsych.run(timeline);
 }

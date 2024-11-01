@@ -492,6 +492,7 @@ const resize = {
     }
 };
 
+// TODO: Create practice for the dual task (only 10 trials). New instructions for the dual task and practice. 
 const instructions_prac = {
     type: jsPsychInstructions,
     pages: [
@@ -532,7 +533,38 @@ const instructions_prac = {
         document.removeEventListener("click", prac_c);
         state = false;
     },
-    //post_trial_gap: 2000,
+    //post_trial_gap: 2000,0
+}
+
+const instructions_prac2 = {
+    type: jsPsychInstructions,
+    pages: [
+        wrapper(`<p>Ya has terminado con la primera parte de la práctica.</p>
+            <p>Ahora vamos a practicar en una situación más similar a lo que te encontrarás durante el experimento</p>`),
+        wrapper(`<p>Durante el experimento, podrán aparecer estímulos en colores diferentes al resto:</p>
+        <div style = "display: flex; flex-direction: row; justify-content: space-around; margin: 30px auto;">
+            <canvas id="myCanvas1" width="400" height="300" style = "border-radius: 3%; background-color: #000"></canvas>
+            <canvas id="myCanvas2" width="400" height="300" style = "border-radius: 3%; background-color: #000"></canvas>
+        </div>
+        <p>Estos estímulos tendrán como objetivo distraerte a la hora de atender al rombo, por lo que deberás ignorarlos para poder atender correctamente al rombo. Sin embargo, también tendrán un rol importante en la tarea.</p>`),
+        wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes la localización del estímulo en un color diferente. Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán las 6 posibles posiciones en la que puedo aparecer el distractor, cada una representada con un número:</p>
+        <img src="src/img/location_Task.png" width="850" height="450">
+        <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando el teclado numérico. En este caso particular, dado que el distractor se ha presentado en la posición 6, deberías pulsar la tecla 6 en el teclado numérico. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas B y J, las teclas de respuesta de la tarea principal.</p>`), // Conditional text
+        wrapper(`<p>Antes de empezar con el experimento, vas a realizar una breve fase de práctica para que te familiarices con la tarea. Durante la práctica vamos a presentarte esta tarea al final de cada ensayo. A diferencia que en esta práctica, durante el experimento real estos ensayos en los que deberás reportar la localización del distractor ocurrirán de forma muy infrecuente.</p>
+        <p>Para garantizar que has comprendido las instrucciones, vas a responder unas breves preseguntas antes de proceder con la práctica.</p>
+        <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar, pulsa <b>seguir</b>.`)
+    ],
+    allow_keys: false,
+    button_label_previous: "Retroceder",
+    button_label_next: "Seguir",
+    show_clickable_nav: true,
+    post_trial_gap: 0,
+    on_load: () => {
+        document.addEventListener("click", exp_c);
+    },
+    on_finish: () => {
+        document.removeEventListener("click", exp_c);
+    },
 }
 
 const pre_prac = {
@@ -553,6 +585,22 @@ const pre_prac = {
         }
     }
 };
+
+const pre_prac2 = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `<p>Ahora, vas a realizar unos pocos ensayos más de práctica a la velocidad en la que ocurritá el experimento </p>
+    <p>Antes de empezar, recuerda:</p>
+    <p><b>Si la línea en el interior del rombo es horizontal, pulsa B</b>.</p>
+    <p><b>Si la línea en el interior del rombo es vertical, pulsa J</b>.</p>
+    <p>Pulsa la barra espaciadora para empezar la práctica.</p>`,
+    choices: [' '],
+    on_finish: () => {
+        const urlvar = (jatos_run) ? jatos.urlQueryParameters : jsPsych.data.urlVariables();
+        const blocks = (Number(urlvar.blocks) == 0) ? 0 : (!isNaN(Number(urlvar.blocks))) ? Number(urlvar.blocks) : 12;
+        const prac = (urlvar.blocks == 0 && urlvar.blocks != undefined) ? false : (urlvar.prac == "true" || urlvar.prac == undefined) && blocks != 0;
+    }
+};
+
 
 const call_experimenter = {
     type: jsPsychHtmlKeyboardResponse,

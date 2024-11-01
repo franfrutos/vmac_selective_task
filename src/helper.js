@@ -276,7 +276,6 @@ const color2hex = (color) => {
         1: singleton, high
         2: target
         3: singleton, low
-
 */
 
 /* Array structure
@@ -295,10 +294,10 @@ const color2hex = (color) => {
 const create_trials = (blocks, norew = "NR", prac = true) => {
     if (blocks == 0) return;
     let distractorAbsent, distractorHigh, distractorLow, conditionLog, trials, blockN;
-    const phases = ["Practice", "Rewarded", norew];
+    const phases = ["Practice", "Practice2", "Practice3", "Rewarded", norew];
     let phaseLog = {};
     for (let phase of phases) {
-        if (!prac && phase == "Practice") continue;
+        if (!prac && (phase == "Practice" || phase == "Practice2")) continue;
         if (blocks == 0 && phase == "Rewarded") continue;
         if (phase == "NR") continue;
         phaseLog[phase] = [];
@@ -316,6 +315,36 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
                     distractorAbsent[k][random(0, 6)] = 2;
                 }
                 conditionLog = distractorAbsent;
+                break;
+            }
+
+            // Change this to include more practice trials
+            if (j == "Practice2" || j == "Practice3" && i === 0) {
+
+                let length = (j == "Practice2") ? 5 : 10;
+
+                distractorHigh = zeros(Math.floor(length), 6); //High-value
+                distractorLow = zeros(Math.floor(length), 6); // Low-value
+                
+                // Filling distractactor High (1s = singleton high; 2s = target):
+                for (let i = 0; i < distractorHigh.length; i++) {
+                    distractorHigh[i][random(0, 6)] = 2;
+                    distractorHigh[i][random(0, 6, [distractorHigh[i].indexOf(2)])] = 1;
+                }
+
+                // Filling distractor low (3s = singleton low; 2s = target):
+                for (let i = 0; i < distractorLow.length; i++) {
+                    distractorLow[i][random(0, 6)] = 2;
+                    distractorLow[i][random(0, 6, [distractorLow[i].indexOf(2)])] = 3;
+                }
+                
+            conditionLog = conditionLog.concat(
+                shuffle(
+                    [].concat(
+                        distractorHigh,
+                        distractorLow
+                    )
+                ));
                 break;
             }
 
@@ -365,6 +394,7 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         trialto[phase] = [];
     }
 
+
     // Function to get information about VMAC trials
     const getSing = (j, i) => {
         let conds = (j == "Reversal") ? ["Low", "High"] : ["High", "Low"];
@@ -374,8 +404,15 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
     }
 
     for (let j of Object.keys(trialto)) {
-        trials = (j == "Practice") ? 24 : 24 * blocks;
-
+        if ((j == "Practice")) {
+            trials = 24;
+        } else if (j == "Practice2") {
+            trials = 10;
+        } else if (j == "Practice3") {
+            trials = 20;
+        } else {
+            trials = 24 * blocks;
+        }
         // List to store indices of trials where the distractor is present
         let dpInd = [];
 
@@ -393,7 +430,7 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
                 Phase: j,
                 counterbalance: counterbalance,
                 colors: pickColor(counterbalance),
-                reportTrial: false, // Initially, reportTrial is false
+                reportTrial: (j == "Practice2" || j == "Practice3") ? true : false, // Initially, reportTrial is false, always true on practice trials 2
             };
 
             // Show report trials position
@@ -406,7 +443,7 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         }
 
         // Now, mark report trials according to specifications
-        if (j !== "Practice") {
+        if (j !== "Practice" && j != "Practice2" && j != "Practice3") {
             markReportTrials(trialto[j], dpInd);
         }
     }

@@ -29,7 +29,7 @@ const counterbalance = random(0, 4);
 
 console.log(`Counterbalance: ${counterbalance}`)
 
-var trialObj, random_high_pos = random(1, 3), condition, not_consent = false, ID, task = "C";
+var trialObj, random_high_pos = random(1, 3), condition, not_consent = false, ID, task = "L";
 
 // Preload all images:
 
