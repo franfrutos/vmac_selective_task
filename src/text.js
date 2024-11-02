@@ -222,7 +222,7 @@ const welcome = {
     type: jsPsychHtmlButtonResponse,
     stimulus: wrapper(`
     <p style="margin-bottom: 2rem;">¡Bienevenida/o al experimento!</p>
-    <p>Antes de empezar, es necesario que realices este experimento en una <b>habitación tenuemente iluminada</b>, con el menor número de distracciones posible: <b>apaga el teléfono (o ponlo en silencio)</b>, <b>que no haya nadie más en la habtación</b> y <b>asegurate de evitar cualquier tipo de ruido que pueda distraerte</b>.</p>
+    <p>Antes de empezar, es necesario que realices este experimento en una <b>habitación tenuemente iluminada</b>, con el menor número de distracciones posible: <b>apaga el teléfono (o ponlo en silencio)</b>, <b>que no haya nadie más en la habtación</b> y <b>asegurate de evitar cualquier tipo de ruido que pueda distraerte</b>. Por último, <b>asegurate de poner el brillo de la pantalla al máximo</b>, ya que será necesario que tengas buena visibilidad durante el experimento.</p>
     <p>Para asegurarnos que puedes realizar el experimento de forma correcta, por favor, cierra cualquier programa que tengas abierto y todas las pestañas del navegador que no sean el experimento.</p>
     <p style="margin-bottom: 2rem;"><b>No cierres ni recargues esta página hasta que se te indique que el experimento ha finalizado</b>.</p>
     <p style="margin-bottom: 3rem;">Una vez te asegures de cumplir con lo expresado arriba, pulsa <b>continuar</b> para empezar.</p>`),
@@ -548,7 +548,7 @@ const instructions_prac2 = {
         </div>
         <p>Estos estímulos tendrán como objetivo distraerte a la hora de atender al rombo, por lo que deberás ignorarlos para poder atender correctamente al rombo. Sin embargo, también tendrán un rol importante en la tarea.</p>`),
         wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes la localización del estímulo en un color diferente. Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán las 6 posibles posiciones en la que puedo aparecer el distractor, cada una representada con un número:</p>
-        <img src="src/img/location_Task.png" width="850" height="450">
+        <img src="src/img/location_task.png" width="850" height="450">
         <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando el teclado numérico. En este caso particular, dado que el distractor se ha presentado en la posición 6, deberías pulsar la tecla 6 en el teclado numérico. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas B y J, las teclas de respuesta de la tarea principal.</p>`), // Conditional text
         wrapper(`<p>Antes de empezar con el experimento, vas a realizar una breve fase de práctica para que te familiarices con la tarea. Durante la práctica vamos a presentarte esta tarea al final de cada ensayo. A diferencia que en esta práctica, durante el experimento real estos ensayos en los que deberás reportar la localización del distractor ocurrirán de forma muy infrecuente.</p>
         <p>Para garantizar que has comprendido las instrucciones, vas a responder unas breves preseguntas antes de proceder con la práctica.</p>
@@ -622,19 +622,14 @@ const instructions_exp = {
             <p>En primer lugar, en función de tu desempeño, en la tarea <b>podrás ganar o perder una determinada cantidad de puntos</b> en cada ensayo. Si respondes correctamente ganarás puntos, mientras que si fallas perderás puntos. 
             Por otro lado, cuanto más rápido respondas, más puntos ganarás (si la respuesta es correcta) o perderás (si no lo es), mientras que si respondes con mayor lentitud la cantidad de puntos ganados será menor. Si tardas demasiado en contestar o cometes errores ganarás menos puntos.</p>
             <p>Por tanto, para maximizar la cantidad de puntos que es posible obtener, intenta responder lo más rápido que puedas sin cometer errores.</p>`),
-            wrapper(`<p>Otra cosa que va a cambiar en el experimento es que en algunos ensayos uno de <b>los círculos que acompañan al rombo podrán aparecer en otro color</b>. Los colores en los que puede aparecer el círculo son <b>${colors_t(colorHigh)}</b> y <b>${colors_t(colorLow)}</b>.</p>
-            <div style = "display: flex; flex-direction: row; justify-content: space-around; margin: 30px auto;">
-            <canvas id="myCanvas1" width="400" height="300" style = "border-radius: 3%; background-color: #000"></canvas>
-            <canvas id="myCanvas2" width="400" height="300" style = "border-radius: 3%; background-color: #000"></canvas>
-            </div>
-            ${(condition.includes("A"))?`<p><b>El color de los círculos influirá en la cantidad de puntos que puedes ganar</b>.</p>
-            <p>Si el círculo se presenta en color <b>${colors_t(colorHigh)}</b> <b>ganarás (o perderás) 10 veces más puntos</b> de lo habitual.</p>
-            <p>En el caso de que uno de los círculos aparezca de color <b>${colors_t(colorLow)}</b> no ganarás ni perderás puntos extra.</p>`:``}
-            <p>Sin embargo, tu tarea sigue siendo la misma: discriminar la orientación de la línea en el interior del rombo. Atender a los círculos solo perjudicará lo bien que hagas la tarea, por lo que <b>trata de ignorar el color de los círculos</b>.</p>`),
+            wrapper(`
+                <p>Por otro lado,  la cantidad de puntos dependerá de la tarea secundaria que acabas de practicar.</p>
+                <p>A diferencia de la práctica, estos ensayos de reporte ocurriran de forma muy infrecuente. Si respondes correctamente a un ensayo de reporte, al final de cada bloque ganarás un bonus de puntos que se sumará a los puntos totales que hayas ganado. Si respondes incorrectamente se te penalizará con lo que hubieras ganado.</p>
+                <p>Para realizar correctamente el experimento te pedimos que intentes hacer la tarea principal como la tarea secundaria de la mejor forma posible</p>`),
             (gam)?wrapper(`
             <p>La cantidad de puntos que ganes se traducirá en la obtención de diferentes medallas que irás desbloqueando conforme avance el experimento:</p>
             <img src="src/img/medals/MedalDisplay.jpg" width="700" height="165">
-            <p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que al final del experimento (después de la tarea de memoria) te informaremos cómo de bien lo has hecho respecto a otros participantes.</p>`): 
+            <p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que al final del experimento te informaremos cómo de bien lo has hecho respecto a otros participantes.</p>`): 
             null,
             wrapper(`<p>Todo lo demás seguirá siendo exactamente igual. Tu tarea consistirá en <b>determinar la orientación de la línea que se encuentra dentro del rombo</b>.</p>
             <div style = "display: flex; flex-direction: row; justify-content: space-around; margin-top: 30px;">

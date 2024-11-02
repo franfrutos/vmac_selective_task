@@ -602,19 +602,19 @@ const run_experiment = () => {
                     required: true,
                     horizontal: false
                 },
-                (condition.includes("A")) ? {
-                    prompt: "¿En qué situaciones podrás ganar 10 veces más puntos?",
-                    name: 'value',
-                    options: shuffle([`Cuando en pantalla aparece el color ${colors_t(colorHigh)}`, `Cuando en pantalla aparece el color ${colors_t(colorLow)}`, 'Cuando en pantalla no aparece ningún color']),
+                {
+                    prompt: "¿Cuál será tu tarea si se te presenta un ensayo de reporte?",
+                    name: 'task',
+                    options: shuffle(["Reportar la localización del distractor", "Reportar el color del distractor", "Reportar la localización del rombo", "Reportar el color del rombo"]),
                     required: true,
                     horizontal: false
-                } : null,
+                },
             ]);
             return arr.filter((q) => q != null);
         },
         on_finish: (data) => {
             const resp = data.response;
-            fail = resp.line != 'J' || resp.feature != 'Al estímulo con forma de rombo' || (resp.value != `Cuando en pantalla aparece el color ${colors_t(colorHigh)}` && resp.value != undefined);
+            fail = resp.line != 'J' || resp.feature != 'Al estímulo con forma de rombo' || (resp.task != 'Reportar la localización del distractor' && resp.value != undefined);
             phase_out = "VMAC";
         }
     };

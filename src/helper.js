@@ -134,7 +134,7 @@ const draw_text = (x, y, number) => {
     return {
         obj_type: 'text',
         content: number.toString(),
-        text_color: color2hex("gray"),
+        text_color: "#fff", // White numbers
         font_size:"30px",
         origin_center: true,
         startX: x,

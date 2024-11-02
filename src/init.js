@@ -37,6 +37,7 @@ const preload = {
     type: jsPsychPreload,
     images: [
         'src/img/dni.jpg',
+        'src/img/location_task.png', //preload images for the location task. TODO: create images for color task.
         'src/img/medals/MedalDisplay.jpg',
         'src/img/medals/medal0.png',
         'src/img/medals/medal1.png',
