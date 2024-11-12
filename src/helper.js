@@ -21,7 +21,7 @@ const xy_from_polar = (phi, rho) => {
 
 }
 
-const xy_circle = (rho, n = 6, phi0 = 30) => {
+const xy_circle = (rho, n = 6, phi0 = 0) => {
     const arr = [];
     let phi = phi0;
 
@@ -130,17 +130,19 @@ const draw_diamond = (length, line_w, color, x, y) => {
     }
 };
 
+/*
 const draw_text = (x, y, number) => {
     return {
         obj_type: 'text',
         content: number.toString(),
         text_color: "#fff", // White numbers
-        font_size:"30px",
+        font_size:"30px", // Change this to defined it in angles
         origin_center: true,
         startX: x,
         startY: y,
     };
 }
+*/
 
 /* const draw_square = (length, line_w, color, x, y) => {
     return {
@@ -185,17 +187,29 @@ const draw_display = (radius, width, rho, log, colors, targetOri, report_t = fal
     const phi0 = 45;
     const arr = [];
     const coordinates = xy_circle(rho, n = n_display);
-    let stimuli, x, y;
+    let stimuli, x, y, line;
 
     console.log(report_t);
     if (report_t) {
         for (let i = 0; i < n_display; i++) {
             [x, y] = coordinates[i];
             // Location report trials
-            stimuli = [draw_circle(radius, width, color2hex("gray"), x, y, report_t),
-            draw_text(x, y, i + 1)];
+            stimuli = [draw_circle(radius, width, color2hex("gray"), x, y, report_t)]
+            //draw_text(x, y, i + 1)];
             arr.push(...stimuli);
         }
+
+        line = {
+            obj_type: 'line',
+            line_length: rho*2.15,
+            line_width: width*0.8,
+            angle: 90,
+            line_color: 'white',
+            origin_center: true,
+        }
+
+        arr.push(line);
+
         return arr;
     }
 

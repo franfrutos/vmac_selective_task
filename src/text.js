@@ -520,7 +520,7 @@ const instructions_prac = {
     button_label_previous: "Retroceder",
     button_label_next: "Seguir",
     show_clickable_nav: true,
-    post_trial_gap: 1000,
+    //post_trial_gap: 1000,
     on_load: () => {
         prac_c();
         document.addEventListener("click", prac_c);
@@ -528,8 +528,6 @@ const instructions_prac = {
     },
     on_finish: () => {
         //Fade to black transition
-        document.body.classList.add("black");
-        document.body.style.cursor = 'none';
         document.removeEventListener("click", prac_c);
         state = false;
     },
@@ -696,10 +694,11 @@ const slider_instr = {
         const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : ["orange", "blue"];
         return wrapper(`
         <p>Antes de continuar te vamos a realizar una breve pregunta sobre el experimento.</p>
-        ${(condition.includes('A'))?`<p>Como sabes, la cantidad de puntos que podías ganar en la tarea que$acabas de realizar dependía del color de uno de los círculos que se te presentaba en pantalla.</p>`:
-        `<p>Como sabes, en la tarea que acabas de realizar se te podían presentar círculos en diferentes colores.</p>`}
+        <p>Como sabes, en la tarea que acabas de realizar se te podían presentar círculos en diferentes colores.</p>
         <p>En tu caso, se te han podido presentar el color ${colors_t(colorHigh)} o el color ${colors_t(colorLow)}.</p>
-        <p>Ahora te vamos a pedir que estimes qué porcentaje de puntos crees que has ganado con cada color, sobre el total de puntos que has ganado.</p>`)
+        <p>Vamos a realizarte algunas preguntas sobre el rol de estos colores durante el experimento. Te pedimos que respondas teniendo en cuenta lo que has percibido o pensado <b>durante el experimento</b>, no en el momento actual. Es decir, intenta responder de forma sincera, evitando cualquier tipo de elaboración posterior. ¡No hay respuestas correctas o incorrectas!
+        <p>Puedes pulsar <b>continuar</b> para empezar con las preguntas.</p>
+        `)
     },
     choices: ["Continuar"]
 }

@@ -46,7 +46,7 @@ const run_experiment = () => {
     })
 
 
-    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0;
+    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0;
 
     const trial = {
         type: jsPsychPsychophysics,
@@ -83,7 +83,7 @@ const run_experiment = () => {
                 sPos: jsPsych.timelineVariable("singPos"),
                 Phase: jsPsych.timelineVariable("Phase"),
                 condition: jsPsych.timelineVariable("condition"),
-                Block_num: (trialNum % 24 == 0 && jsPsych.timelineVariable("Phase").includes("Rewarded"))  ? ++BlockNum : BlockNum,
+                Block_num: (trialNum % 48 == 0 && jsPsych.timelineVariable("Phase").includes("Rewarded"))  ? ++BlockNum : BlockNum,
                 trial_num: ++trialNum,
                 counterbalance: counterbalance,
                 color: color,
@@ -101,7 +101,8 @@ const run_experiment = () => {
             report_trial = jsPsych.timelineVariable("reportTrial");
         },
         trial_duration: () => {
-            return (jsPsych.timelineVariable("Phase") == "Practice2")? 10700: 3700;
+            return null
+            //(jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 3700;
         }, 
         response_start_time: () => {
             return  1700;
@@ -135,7 +136,7 @@ const run_experiment = () => {
         },
         post_trial_gap: () => {
             const phase = jsPsych.data.get().last(1).values()[0].Phase;
-            if ((phase == "Practice" && trialNum == 24) || (phase != "Rewarded" && trialNum == (24 * blocks) * 2)) return 1000;
+            if ((phase == "Practice" && trialNum == 48) || (phase != "Rewarded" && trialNum == (48 * blocks) * 2)) return 1000;
         },
         trial_duration: 700,
         choices: ["NO_KEYS"],
@@ -146,12 +147,12 @@ const run_experiment = () => {
                 if (trialNum > 9 & pracCorr > .9) {
                     return 1000;
                 }
-                if (trialNum == 24) {
+                if (trialNum == 48) {
                     return 1000;
                 }
             }
             if (phase == "Rewarded") {
-                if (blocks * 24 == trialNum) {
+                if (blocks * 48 == trialNum) {
                     return 1000;
                 }
             }
@@ -178,7 +179,8 @@ const run_experiment = () => {
                 }
             }
             if (phase == "Rewarded") {
-                if (blocks * 24 == trialNum) {
+                if (blocks * 48 == trialNum) {
+                    correctReport = 0; incorrectReport = 0;
                     document.body.classList.remove("black");
                     document.body.style.cursor = 'auto';
                 }
@@ -207,12 +209,7 @@ const run_experiment = () => {
             }
         },
         background_color: '#000000',
-        choices: () => {
-            if (task == "L") {
-                return ["1", "2", "3", "4", "5", "6"];
-            }
-            return ["c", "m"];
-        },
+        choices: ["c", "m"],
         canvas_width: () => { // Canvas size depends on stimulus size by default.
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg;
             return sF * 15; 
@@ -223,19 +220,24 @@ const run_experiment = () => {
         },
         on_finish: (data) => {
             if (task == "L") {
-                data.correct_response = jsPsych.timelineVariable("singPos");
-                data.correct = (data.correct_response == data.response) ? 1 : 0;
+                [2, 3, 4].includes(jsPsych.timelineVariable("singPos"))
+                data.correct_response = ([2, 3, 4].includes(jsPsych.timelineVariable("singPos"))) ? "c" : "m";
+                data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
             } else {
                 data.correct_response = (jsPsych.timelineVariable("condition") == "High") ? "c" : "m";
                 data.correct = (jsPsych.pluginAPI.compareKeys(data.response, data.correct_response)) ? 1 : 0;
             }
+
+            correctReport += data.correct; // Update correct reports counter
+            incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1. 
+
             report_trial = jsPsych.timelineVariable("reportTrial");
             phase = jsPsych.timelineVariable("Phase");
             if (trialNum == 10 & phase == "Practice2") {
                     trialNum = 0;
                     BlockNum = 0;
-                }
-                if (trialNum == 20 & phase == "Practice3") {
+            }
+            if (trialNum == 20 & phase == "Practice3") {
                     trialNum = 0;
                     BlockNum = 0;
                     document.body.classList.remove("black");
@@ -252,7 +254,8 @@ const run_experiment = () => {
         trial_duration: 1000
     };
 
-    // First, letter R indicate that there is a report trial. Then, they have to respond
+    // First, letter R indicate that there is a report trial. Then, report trial.
+    // TODO: Add conditional feedback only for practice
     const if_report_rep = {
         timeline: [pre_report, report_rep],
         conditional_function: () => {
@@ -260,6 +263,7 @@ const run_experiment = () => {
         }
     }
 
+    // TODO: Include information regarding report trials
     const rest = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -271,9 +275,13 @@ const run_experiment = () => {
             const next = (rank <= 4) ?
                 `<p>Te quedan ${formatting(next_points(points_cut_off, rank + 1, total_points).toString())} puntos para desbloquear la siguiente medalla.</p>` :
                 "";
+            
+            // Updating as a function of correct or incorrect report trials
+            total_points = total_points + (correctReport + (-incorrectReport)) * 2000;
 
             return `
                        <p>Has completado ${BlockNum} de ${blocks} bloques.</p>
+                       <p>Has acertado ${correctReport} y fallado ${incorrectReport} ensayos de reporte: ${(correctReport+(-incorrectReport))*2000} puntos.
                        ${`<p>Llevas ${formatting(total_points.toString())} puntos acumulados.</p>`}
                        ${(gam) ? disp_medals + next : ""}
                        <p>Pulsa la barra espaciadora cuando quieras continuar.</p>
@@ -358,7 +366,7 @@ const run_experiment = () => {
     const if_nodeRest = {
         timeline: [rest],
         conditional_function: () => {
-            return (trialNum % 24 == 0 && trialNum != 24 * blocks) && (trialNum % 24 == 0 && trialNum != (24 * blocks) * 2);
+            return (trialNum % 48 == 0 && trialNum != 48 * blocks) && (trialNum % 48 == 0 && trialNum != (48 * blocks) * 2);
         },
     }
 
@@ -398,10 +406,10 @@ const run_experiment = () => {
         stimulus: () => {
             if (!fail && phase_out == "VMAC") {
                 return wrapper(`<p>Ahora va a empezar al experimento.</p>
-                   <p>El experimento va a constar de una tarea con ${`${blocks.toString()} bloque${(blocks > 1) ? `s` : ``}`} de 24 ensayos (25 minutos).</p>
+                   <p>El experimento va a constar de una tarea con ${`${(blocks/2).toString()} bloque${(blocks > 1) ? `s` : ``}`} de 48 ensayos (25 minutos).</p>
                    <p>Entre bloques podrás descansar si lo necesitas.</p>
                    <p>Pulsa comenzar para empezar el experimento.</p>`, true)
-            } else if (!fail && phase_out == "Practice2") {
+            } else if (!fail && phase_out.includes("Practice")) {
                 return `<p>Has respondido correctamente a las preguntas.</p>
                 <p>Pulsa <b>comenzar</b> para empezar con la práctica.</p>`;
             } else {
@@ -488,7 +496,6 @@ const run_experiment = () => {
         }
     }
 
-    // TODO: Practice 3 (Second practice for dual task, normal speed). 
     const practice3 = {
         timeline: [trial, feedback, if_report_rep],
         timeline_variables: (blocks != 0) ? trialObj.Practice3 : [],
@@ -519,8 +526,53 @@ const run_experiment = () => {
         randomize_order: false,
     }
 
+const post_inst_prac = {
+        type: jsPsychSurveyMultiChoice,
+        questions: () => {
+            const arr = shuffle([
+                {
+                    prompt: "¿Qué tecla debes pulsar si se te presenta una linea en posición vertical?",
+                    name: 'line',
+                    options: shuffle(['B', 'J', 'C']),
+                    required: true,
+                    horizontal: false
+                },
+                {
+                    prompt: "¿A qué estímulo debes atender durante la tarea?",
+                    name: 'feature',
+                    options: shuffle(['Al estímulo con forma de rombo', 'Al estímulo con forma de círculo', 'Al estimulo con un color diferente']),
+                    required: true,
+                    horizontal: false
+                },
+            ]);
+            return arr.filter((q) => q != null);
+        },
+        on_finish: (data) => {
+            const resp = data.response;
+            fail = resp.line != 'J' || resp.feature != 'Al estímulo con forma de rombo';
+            phase_out = "Practice";
+        }
+    };
+
+    
+
+    const procedure_inst_prac = {
+        timeline: [instructions_prac, post_inst_prac, repeat],
+        loop_function: () => {
+            return fail;
+        },
+        on_finish: () => {
+            cont = (!fail) ? true : false;
+            if (!fail && cont) {
+                document.body.classList.add("black");
+                document.body.style.cursor = 'none';
+            }
+        },
+        //post_trial_gap: 0,
+    }
+
     const procedure_prac = {
-        timeline: [instructions_prac, pre_prac, if_practice],
+        timeline: [procedure_inst_prac, pre_prac, if_practice],
         repetitions: 1,
         randomize_order: false,
         post_trial_gap: () => { if (prac == false) return 1000 },
@@ -554,6 +606,7 @@ const run_experiment = () => {
         }
     };
     
+
     const procedure_inst_prac2 = {
         timeline: [instructions_prac2, post_inst_prac2, repeat],
         loop_function: () => {
@@ -582,7 +635,6 @@ const run_experiment = () => {
             }
         },
     }
-
 
     const post_inst_exp = {
         type: jsPsychSurveyMultiChoice,
@@ -638,19 +690,12 @@ const run_experiment = () => {
         //post_trial_gap: 0,
     }
 
-
-    const slide = {
+    const slide1 = {
         type: jsPsychHtmlSliderResponse,
         stimulus: () => {
             random_high_pos = random(1, 3);
             return `<div style="width:auto; margin-bottom: 50px;">
-               <p>¿Qué porcentaje de puntos crees que has ganado con cada color?</p>
-               <div style="width:240px; float: left;">
-                   <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
-               </div>
-               <div style="width:240px; float: right;">
-                   <canvas id="myCanvas${(random_high_pos == 1) ? 2 : 1}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
-               </div>
+               <p>¿Durante el experimento, crees que el color estaba relacionado con los ensayos de puntos extra?</p>
                </div>`
         },
         require_movement: true,
@@ -675,6 +720,42 @@ const run_experiment = () => {
                 contingency_rating1: out,
             })
             data.Phase = "Contingency"
+        },
+        //post_trial_gap: 500,
+    };
+
+
+    const slide2 = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: () => {
+            random_high_pos = random(1, 3);
+            return `<div style="width:auto; margin-bottom: 50px;">
+               <p>¿Qué porcentaje de ensayos bonus crees que se ha producido con cada color?</p>
+               <div style="width:240px; float: left;">
+                   <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
+               </div>
+               <div style="width:240px; float: right;">
+                   <canvas id="myCanvas${(random_high_pos == 1) ? 2 : 1}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
+               </div>
+               </div>`
+        },
+        require_movement: true,
+        labels: ["No creo que estuviesen relacionados", "Creo que estaban totalmente relacionados"],
+        prompt: "<p>Pulsa continuar cuando hayas acabado</p>",
+        button_label: "Continuar",
+        on_load: () => {
+            document.addEventListener("click", slider_c);
+            const slider = document.getElementsByClassName("jspsych-slider");
+            slider[0].addEventListener("input", slider_move);
+
+        },
+        on_finish: (data) => {
+            document.removeEventListener("click", slider_c);
+            const out = (random_high_pos == 1) ? 100 - data.response : data.response;
+            jsPsych.data.addProperties({
+                contingency_rating1: out,
+            })
+            data.Phase = "Awareness"
         },
         //post_trial_gap: 500,
     };
@@ -704,7 +785,7 @@ const run_experiment = () => {
             jsPsych.data.addProperties({
                 confidence_rating1: data.response,
             })
-            data.Phase = "Confidence"
+            data.Phase = "Awareness"
 
         },
         //post_trial_gap: 500,
@@ -712,10 +793,7 @@ const run_experiment = () => {
 
 
     const slider_proc = {
-        timeline: [slider_instr, slide, slide_confidence],
-        conditional_function: () => {
-            return condition.includes("2") || (condition.includes("1"))
-        }
+        timeline: [slider_instr, slide1, slide_confidence, slide2, slide_confidence],
     }
 
     const procedure_exp = {
@@ -755,7 +833,9 @@ const run_experiment = () => {
         choices: ["Salir del experimento"]
     }
 
-    timeline.push(check_cond, check, preload, consent_proc, procedure_cal, procedure_prac, procedure_prac2, cond_func, procedure_exp, full_off, questions, if_download);
+    timeline.push(check_cond, check, preload, consent_proc,
+        procedure_cal, procedure_prac, procedure_prac2, cond_func,
+        procedure_exp, slider_proc, full_off, questions, if_download);
 
     jsPsych.run(timeline);
 }
