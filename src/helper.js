@@ -189,7 +189,6 @@ const draw_display = (radius, width, rho, log, colors, targetOri, report_t = fal
     const coordinates = xy_circle(rho, n = n_display);
     let stimuli, x, y, line;
 
-    console.log(report_t);
     if (report_t) {
         for (let i = 0; i < n_display; i++) {
             [x, y] = coordinates[i];
@@ -474,7 +473,6 @@ const create_trials = (blocks, norew = "NR", prac = true) => {
         console.log(reportTrialIndices);
     }
 
-    console.log(trialto);
     return trialto;
 }
 
@@ -645,7 +643,6 @@ const finishCond = () => {
 // Function to end study or go to the next component
 const studyEnd = (href = null) => {
     if (window.jatos) {
-        console.log(end);
         if (end == false) finishCond();
         const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
         jatos.submitResultData(results)

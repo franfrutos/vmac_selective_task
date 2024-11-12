@@ -687,6 +687,23 @@ const pre_exp = {
 };
 
 const slider_instr = {
+    type: jsPsychInstructions,
+    pages:  [
+        wrapper(`<p>Ya has terminado el experimento, ¡muy bien!</p>
+            <p>Antes de finalizar el experimento, vamos a hacerte algunas preguntas sobre algunos aspectos de la tarea que acabas de realizar.</p>`),
+        wrapper(`<p>Si recuerdas correctamente, en ciertas ocasiones podías ganar <b>puntos extra</b>.</p>
+                    <p>A continuación, vamos a realizarte dos breves cuestiones sobre estas ocasiones en las que podías ganar <b>puntos extra</b>.`),
+        wrapper(`<p>Es importante que respondas a estas preguntas teniendo en cuenta en lo que pensaste o sentiste <b>durante el experimento</b>, no en el momento actual</p>
+            <p>Por favor, responde con sinceridad y evita intentar hacer elaboraciones posteriores. Es decir, si durante el experimento no pensaste sobre las cuestiones, no intentes dar una respuesta al azar. No hay respuestas correctas ni incorrectas, ¡nos interesa tu opinión sincera!</p>,
+            <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar con las preguntas, pulsa <b>seguir</b>.`),
+            ],
+    allow_keys: false,
+    button_label_previous: "Retroceder",
+    button_label_next: "Seguir",
+    show_clickable_nav: true,
+}
+
+/* const slider_instr = {
     type: jsPsychHtmlButtonResponse,
     stimulus: () => {
         const urlvar = (jatos_run) ? jatos.urlQueryParameters : jsPsych.data.urlVariables();
@@ -701,7 +718,7 @@ const slider_instr = {
         `)
     },
     choices: ["Continuar"]
-}
+} */
 
 const questions = {
     type: jsPsychSurveyHtmlForm,

@@ -83,7 +83,7 @@ const run_experiment = () => {
                 sPos: jsPsych.timelineVariable("singPos"),
                 Phase: jsPsych.timelineVariable("Phase"),
                 condition: jsPsych.timelineVariable("condition"),
-                Block_num: (trialNum % 48 == 0 && jsPsych.timelineVariable("Phase").includes("Rewarded"))  ? ++BlockNum : BlockNum,
+                Block_num: (trialNum % 24 == 0 && jsPsych.timelineVariable("Phase").includes("Rewarded"))  ? ++BlockNum : BlockNum,
                 trial_num: ++trialNum,
                 counterbalance: counterbalance,
                 color: color,
@@ -99,10 +99,10 @@ const run_experiment = () => {
             pracCorr = sumCorr / trialNum;
             // Report trial?
             report_trial = jsPsych.timelineVariable("reportTrial");
+            console.log(trialNum);
         },
         trial_duration: () => {
-            return null
-            //(jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 3700;
+            return (jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 700;
         }, 
         response_start_time: () => {
             return  1700;
@@ -122,7 +122,7 @@ const run_experiment = () => {
                 }
                 const bonus = (jsPsych.timelineVariable("condition") == "High" &&
                     (jsPsych.timelineVariable("Phase") != "Extinction" && jsPsych.timelineVariable("Phase") != "Devaluation")) ?
-                    `<div style="background-color: ${(acc) ? `#ffff00` : `#8765c2`}; color: black; font-size: 2rem; font-weight: 600; padding: 40px;">${(acc) ?
+                    `<div style="background-color: ${(acc) ? `#ffff00` : `#ff0000`}; color: black; font-size: 2rem; font-weight: 600; padding: 40px;">${(acc) ?
                         `¡Puntos Extra!` :
                         `Perdidas Extra`}</div></br>` :
                     '<div></div></br>';
@@ -133,10 +133,6 @@ const run_experiment = () => {
                 return bonus + gains;
             }
             return "<p style='font-size: 2rem;'>Demasiado lento. Intenta responder más rápido.</p>";
-        },
-        post_trial_gap: () => {
-            const phase = jsPsych.data.get().last(1).values()[0].Phase;
-            if ((phase == "Practice" && trialNum == 48) || (phase != "Rewarded" && trialNum == (48 * blocks) * 2)) return 1000;
         },
         trial_duration: 700,
         choices: ["NO_KEYS"],
@@ -152,7 +148,7 @@ const run_experiment = () => {
                 }
             }
             if (phase == "Rewarded") {
-                if (blocks * 48 == trialNum) {
+                if (blocks/2 * 48 == trialNum) {
                     return 1000;
                 }
             }
@@ -162,7 +158,6 @@ const run_experiment = () => {
             const phase = jsPsych.timelineVariable("Phase");
             // Maybe move Practice2 and Practice3 to report_rep
             if (phase == "Practice" || phase == "Practice2" || phase == "Practice3") {
-                console.log(phase); console.log(trialNum);
                 if ((trialNum > 9 & pracCorr > .9) & phase == "Practice") {
                     console.log('Participant reach threshold before ending the practice');
                     trialNum = 0;
@@ -179,7 +174,7 @@ const run_experiment = () => {
                 }
             }
             if (phase == "Rewarded") {
-                if (blocks * 48 == trialNum) {
+                if (blocks/2 * 48 == trialNum) {
                     correctReport = 0; incorrectReport = 0;
                     document.body.classList.remove("black");
                     document.body.style.cursor = 'auto';
@@ -229,10 +224,12 @@ const run_experiment = () => {
             }
 
             correctReport += data.correct; // Update correct reports counter
-            incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1. 
+            incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1.
+
+            console.log(data.correct);
 
             report_trial = jsPsych.timelineVariable("reportTrial");
-            phase = jsPsych.timelineVariable("Phase");
+            phase = "Report";
             if (trialNum == 10 & phase == "Practice2") {
                     trialNum = 0;
                     BlockNum = 0;
@@ -255,7 +252,6 @@ const run_experiment = () => {
     };
 
     // First, letter R indicate that there is a report trial. Then, report trial.
-    // TODO: Add conditional feedback only for practice
     const if_report_rep = {
         timeline: [pre_report, report_rep],
         conditional_function: () => {
@@ -366,8 +362,13 @@ const run_experiment = () => {
     const if_nodeRest = {
         timeline: [rest],
         conditional_function: () => {
-            return (trialNum % 48 == 0 && trialNum != 48 * blocks) && (trialNum % 48 == 0 && trialNum != (48 * blocks) * 2);
-        },
+        // Check if it's the end of every 48 trials
+        if (trialNum % 48 === 0) {
+            // Exclude specific points: 24 * blocks
+            return trialNum !== (24 * blocks);
+        }
+            return false;
+        }
     }
 
     const reward = {
@@ -695,7 +696,35 @@ const post_inst_prac = {
         stimulus: () => {
             random_high_pos = random(1, 3);
             return `<div style="width:auto; margin-bottom: 50px;">
-               <p>¿Durante el experimento, crees que el color estaba relacionado con los ensayos de puntos extra?</p>
+               <p>Durante el experimento, ¿pensaste que el color de los distractores estaba relacionado con los ensayos en los que podías ganar puntos extra de alguna manera?</p>
+               </div>`
+        },
+        require_movement: true,
+        prompt: "<p>Pulsa continuar cuando hayas acabado</p>",
+        button_label: "Continuar",
+        labels: ["No creo que estuviesen relacionados", "Creo que estaban totalmente relacionados"],
+        on_finish: (data) => {
+            jsPsych.data.addProperties({
+                contingency_rating1: data.response,
+            })
+            data.Phase = "Contingency"
+        },
+        //post_trial_gap: 500,
+    };
+
+
+    const slide2 = {
+        type: jsPsychHtmlSliderResponse,
+        stimulus: () => {
+            random_high_pos = random(1, 3);
+            return `<div style="width:auto; margin-bottom: 50px;">
+               <p>¿Qué porcentaje de ensayos bonus crees que se ha producido cuando el distractor se presentaba con cada color?</p>
+               <div style="width:240px; float: left;">
+                   <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
+               </div>
+               <div style="width:240px; float: right;">
+                   <canvas id="myCanvas${(random_high_pos == 1) ? 2 : 1}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
+               </div>
                </div>`
         },
         require_movement: true,
@@ -717,43 +746,7 @@ const post_inst_prac = {
             document.removeEventListener("click", slider_c);
             const out = (random_high_pos == 1) ? 100 - data.response : data.response;
             jsPsych.data.addProperties({
-                contingency_rating1: out,
-            })
-            data.Phase = "Contingency"
-        },
-        //post_trial_gap: 500,
-    };
-
-
-    const slide2 = {
-        type: jsPsychHtmlSliderResponse,
-        stimulus: () => {
-            random_high_pos = random(1, 3);
-            return `<div style="width:auto; margin-bottom: 50px;">
-               <p>¿Qué porcentaje de ensayos bonus crees que se ha producido con cada color?</p>
-               <div style="width:240px; float: left;">
-                   <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
-               </div>
-               <div style="width:240px; float: right;">
-                   <canvas id="myCanvas${(random_high_pos == 1) ? 2 : 1}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
-               </div>
-               </div>`
-        },
-        require_movement: true,
-        labels: ["No creo que estuviesen relacionados", "Creo que estaban totalmente relacionados"],
-        prompt: "<p>Pulsa continuar cuando hayas acabado</p>",
-        button_label: "Continuar",
-        on_load: () => {
-            document.addEventListener("click", slider_c);
-            const slider = document.getElementsByClassName("jspsych-slider");
-            slider[0].addEventListener("input", slider_move);
-
-        },
-        on_finish: (data) => {
-            document.removeEventListener("click", slider_c);
-            const out = (random_high_pos == 1) ? 100 - data.response : data.response;
-            jsPsych.data.addProperties({
-                contingency_rating1: out,
+                contingency_rating2: out,
             })
             data.Phase = "Awareness"
         },
@@ -797,7 +790,7 @@ const post_inst_prac = {
     }
 
     const procedure_exp = {
-        timeline: [procedure_inst_exp, pre_exp, if_reward, slider_proc, if_transition, report, slider_proc],
+        timeline: [procedure_inst_exp, pre_exp, if_reward],
         repetitions: 1,
         randomize_order: false,
         //post_trial_gap: 1000,
@@ -810,7 +803,7 @@ const post_inst_prac = {
         choices: ["Sí", "No"],
         on_finish: (data) => {
             if (data.response == 0) {
-                jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).localSave("csv", "example.csv");
+                jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { Phase: "Report" }]).localSave("csv", "example.csv");
             }
         }
     }
