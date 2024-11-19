@@ -295,7 +295,6 @@ const run_experiment = () => {
         }
     }
 
-    // TODO: Include information regarding report trials
     const rest = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -367,6 +366,7 @@ const run_experiment = () => {
     const report = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
+            total_points = total_points + (correctReport + (-incorrectReport)) * 2000;
             const rank = find_ranking(points_cut_off, total_points, r = true);
             const medal = (rank >= 0) ? `<p>Has acumulado ${formatting(total_points.toString())} puntos y desbloqueado la siguiente medalla: </p>
                        <img src="src/img/medals/${get_medal((rank > 5) ? rank - 1 : rank)}" width="150" height="150">` :
