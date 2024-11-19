@@ -484,8 +484,8 @@ const run_experiment = () => {
     const repeat_cal = {
         type: jsPsychHtmlButtonResponse,
         stimulus: () => {
-            const distance = jsPsych.data.get().last(1).values()[0].view_dist_mm;
-            return `<p>Hemos estimado que te encuentras a la siguiente distancia de la pantalla: ${parseInt(distance / 10)} cm </p>.
+            const distance = viewDist;
+            return `<p>Hemos estimado que te encuentras a la siguiente distancia de la pantalla: ${parseInt(distance / 10)} cm. </p>
             <p>Esto significa que te encuentras muy cerca o muy lejos de la pantalla, o que no hemos conseguido estimar correctamente la distancia real a la que te encuentras.</p>
             <p>Dado que está calibración es crítica para hacer correctamente el experimento, te vamos a pedir que la vuelvas a realizar.</p>
             <p>En caso de que realmente te encontrases a esa distancia, por favor, colocate a una distancia de entre <b>35 y 75 cm</b> de la pantalla para poder realizar la tarea con comodidad, y que mantengas una postura similar durante el experimento.</p>`

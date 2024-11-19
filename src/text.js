@@ -484,11 +484,14 @@ const resize = {
     <p style = "margin-bottom: 30px;">Pulsa la barra espaciadora para empezar.</p>`,
     blindspot_measurements_prompt: `repeticiones pendientes: `,
     on_finish: (data) => {
-        jsPsych.data.addProperties({
-            px2deg: data.px2deg,
-            viewing_distance: data.view_dist_mm,
-        });
+        viewDist = data.view_dist_mm;
         fail_cal = (data.view_dist_mm < 350 || data.view_dist_mm > 750);
+        if (!fail_cal) {
+            jsPsych.data.addProperties({
+                px2deg: data.px2deg,
+                viewing_distance: data.view_dist_mm,
+            });
+        };
     }
 };
 
