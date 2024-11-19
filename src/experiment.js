@@ -486,9 +486,9 @@ const run_experiment = () => {
         stimulus: () => {
             const distance = jsPsych.data.get().last(1).values()[0].view_dist_mm;
             return `<p>Hemos estimado que te encuentras a la siguiente distancia de la pantalla: ${parseInt(distance / 10)} cm </p>.
-            <p>Esto significa que te encuentras muy cerca o muy lejos de la pantalla, o que no hemos conseguido estimar correctamente esa distancia.</p>
+            <p>Esto significa que te encuentras muy cerca o muy lejos de la pantalla, o que no hemos conseguido estimar correctamente la distancia real a la que te encuentras.</p>
             <p>Dado que está calibración es crítica para hacer correctamente el experimento, te vamos a pedir que la vuelvas a realizar.</p>
-            <p>En caso de que realmente te encontrases a esa distancia, por favor, colocate a una distancia de entre <b>35 y 75 cm</b> de la pantalla para poder realizar la tarea con comodidad.</p>`
+            <p>En caso de que realmente te encontrases a esa distancia, por favor, colocate a una distancia de entre <b>35 y 75 cm</b> de la pantalla para poder realizar la tarea con comodidad, y que mantengas una postura similar durante el experimento.</p>`
         },
         choices: () => {
             return  ["Volver a realizar la calibración"];
@@ -878,14 +878,3 @@ if (jatos_run) {
 } else {
     run_experiment();
 }
-
-/* TODO:
-    1. Añadir feedback para la tarea de reporte en los ensayos de práctica. (DONE, pero chequear)
-    2. Asegurarse que las transiciones de color se dan adecuadamente. (Comprobar)
-    3. Si el ultimo trial de la tarea es de reporte, que la transición se de después de dar esa respuesta (DONE, pero chequear).
-    4. Comprobar que todo va como debería ir (fallar la calibración hace que tengas que volver a realizarla, lo mismo con las preguntas tipo test, y comprobar compatibilidad con SONA/Prolific)
-    5. Asegurarnos de que todo se guarda bien en el servidor.
-    6. Una vez comprobado y pilotado el estudio, crear diferentes versiones de la tarea (Española (Madrid y Granada), Inglesa (Amsterdam)). 
-
-    Cosas extra: Usar el sistema de contrabalanceo de JATOS (es más fácil).
-*/

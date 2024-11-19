@@ -533,12 +533,6 @@ const instructions_prac = {
     //post_trial_gap: 2000,0
 }
 
-/*(gam)?wrapper(`
-<p>La cantidad de puntos que ganes se traducirá en la obtención de diferentes medallas que irás desbloqueando conforme avance el experimento:</p>
-<img src="src/img/medals/MedalDisplay.jpg" width="700" height="165">
-<p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que al final del experimento te informaremos cómo de bien lo has hecho respecto a otros participantes.</p>`): 
-null, */
-
 const instructions_prac2 = {
     type: jsPsychInstructions,
     pages: () => {
