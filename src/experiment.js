@@ -363,6 +363,7 @@ const run_experiment = () => {
         }
     }
 
+    // Maybe remove performance report?
     const report = {
         type: jsPsychHtmlKeyboardResponse,
         stimulus: () => {
@@ -372,7 +373,7 @@ const run_experiment = () => {
                        <img src="src/img/medals/${get_medal((rank > 5) ? rank - 1 : rank)}" width="150" height="150">` :
                 `<p>Has acumulado ${formatting(total_points.toString())} puntos.</p>`;
             return `<p>Acabas de terminar el experimento.</p>
-                       ${(gam) ? medal + report_performance(rank) : ""}
+                       ${(gam) ? medal : ""}
                        <p>Pulsa la barra espaciadora para seguir.</p>`
         },
         choices: [' '],
