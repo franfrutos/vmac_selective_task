@@ -102,7 +102,7 @@ const run_experiment = () => {
             console.log(trialNum);
         },
         trial_duration: () => {
-            return (jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 700;
+            return (jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 3700;
         }, 
         response_start_time: () => {
             return  1700;
