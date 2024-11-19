@@ -410,8 +410,9 @@ const instructions_cal = {
         <p>Intenta encontrar tu punto ciego antes de empezar la calibración:</p>
         <ol style="max-width:100%;">
         <li>Pon la mano izquierda en la <b>barra espaciadora</b>.</li>
+        <li>Mira al centro de la pantalla.</li>
         <li>Tápate el ojo derecho con la mano derecha.</li>
-        <li>Atiende al cuadrado negro con el ojo izquierdo. No dejes de mirarlo.</li>
+        <li>Atiende al cuadrado negro con el ojo izquierdo mientras mantienes tu cabeza orientada al centro de la pantalla. No dejes de mirarlo.</li>
         <li>Cuando pulses la barra espaciadora el <b style = "color:red;">círculo rojo</b> comenzará a moverse. Atiende al círculo de reojo.</li>
         <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, <b>al menos durante 1 segundo</b>), no en cueanto desaparezca.</li>
         </ol>
@@ -475,8 +476,9 @@ const resize = {
     <div>
     <ol style="max-width:90%; text-align: left;">
     <li>Pon la mano izquierda en la <b>barra espaciadora</b>.</li>
+    <li>Mira al centro de la pantalla.</li>
     <li>Tápate el ojo derecho con la mano derecha.</li>
-    <li>Atiende al cuadrado negro con el ojo izquierdo. No dejes de mirarlo.</li>
+    <li>Atiende al cuadrado negro con el ojo izquierdo mientras mantienes tu cabeza orientada al centro de la pantalla. No dejes de mirarlo.</li>
     <li>Cuando pulses la barra espaciadora el <b style = "color:red;">círculo rojo</b> comenzará a moverse. Atiendelo de reojo.</li>
     <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, al menos durante 1 segundo, no en cuanto desaparezca.</li>
     </div>
