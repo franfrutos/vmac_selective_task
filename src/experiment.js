@@ -16,7 +16,7 @@ const run_experiment = () => {
     else if (!["Reversal", "Devaluation", "Omission"].includes(capitalize(urlvar.phase))) console.log(`WARNING: an invalid phase parameter was used: ${urlvar.phase}. Phase has been set to NR.`);
 
     console.log(`Experiment Parameters
-       Phase: ${norew}. Blocks: ${blocks}. Practice: ${prac}. Condition: ${condition}. norew: ${norew}. gamify: ${gam}.`);
+       Phase: ${norew}. Blocks: ${blocks}. Practice: ${prac}. Condition: ${urlvar.condition}. norew: ${norew}. gamify: ${gam}.`);
     
     trialObj = create_trials(blocks, norew, prac);
     const [colorHigh, colorLow] = (blocks != 0) ? trialObj["Rewarded"][1].colors : [color2hex("orange"), color2hex("blue")];
@@ -46,7 +46,7 @@ const run_experiment = () => {
     })
 
 
-    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0;
+    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0, confidence_counter = 1;
 
     const trial = {
         type: jsPsychPsychophysics,
@@ -174,10 +174,11 @@ const run_experiment = () => {
                 }
             }
             if (phase == "Rewarded") {
-                if (blocks/2 * 48 == trialNum) {
-                    correctReport = 0; incorrectReport = 0;
-                    document.body.classList.remove("black");
-                    document.body.style.cursor = 'auto';
+                if (!report_trial) { // In case no report trial, make transition to awareness questions
+                    if (blocks / 2 * 48 == trialNum) {
+                        document.body.classList.remove("black");
+                        document.body.style.cursor = 'auto';
+                    }
                 }
             }
         }
@@ -188,6 +189,7 @@ const run_experiment = () => {
         type: jsPsychPsychophysics,
         stimuli: () => {
             const sF = (lab) ? 40 : jsPsych.data.get().last(1).values()[0].px2deg; // If experiment is run in lab, custom px2deg
+            const task = jsPsych.data.get().last(1).values()[0].task;
             if (task == "L") {
                 const log = [0, 0, 0, 0, 0, 0];
                 // Report location
@@ -214,6 +216,7 @@ const run_experiment = () => {
             return sF * 15;
         },
         on_finish: (data) => {
+            const task = data.task;
             if (task == "L") {
                 [2, 3, 4].includes(jsPsych.timelineVariable("singPos"))
                 data.correct_response = ([2, 3, 4].includes(jsPsych.timelineVariable("singPos"))) ? "c" : "m";
@@ -227,19 +230,24 @@ const run_experiment = () => {
             incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1.
 
             console.log(data.correct);
-
             report_trial = jsPsych.timelineVariable("reportTrial");
-            phase = "Report";
+            const phase = jsPsych.data.get().last(1).values()[0].Phase;
             if (trialNum == 10 & phase == "Practice2") {
-                    trialNum = 0;
-                    BlockNum = 0;
+                trialNum = 0; BlockNum = 0; correctReport = 0; incorrectReport = 0;
             }
             if (trialNum == 20 & phase == "Practice3") {
-                    trialNum = 0;
-                    BlockNum = 0;
+                trialNum = 0; BlockNum = 0; correctReport = 0; incorrectReport = 0;
+                document.body.classList.remove("black");
+                document.body.style.cursor = 'auto';
+            }
+
+            if (report_trial) {
+                if (blocks / 2 * 48 == trialNum) {
                     document.body.classList.remove("black");
                     document.body.style.cursor = 'auto';
                 }
+            }
+            data.Phase = "Report";
         },
 
     };
@@ -251,9 +259,37 @@ const run_experiment = () => {
         trial_duration: 1000
     };
 
+    // Feedback for report trials (only practice)
+    const feedback_report = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: () => {
+            const correct = jsPsych.data.get().last(1).values()[0].correct;
+            return (correct) ? `<p style="color: #ffff00; font-size: 2rem;">Correcto</p>` : `<p style="color: #ff0000; font-size: 2rem;">Error</p>`;
+
+        },
+        trial_duration: 700,
+        choices: ["NO_KEYS"],
+        post_trial_gap: 0,
+        on_finish: () => {
+            const phase = jsPsych.timelineVariable("Phase");
+            if (trialNum == 30 & phase.includes("Practice")) {
+                    correctReport = 0; incorrectReport = 0;
+                    document.body.classList.remove("black");
+                    document.body.style.cursor = 'auto';
+            }
+        }
+    }
+    const if_feedback_report = {
+        timeline: [feedback_report],
+            conditional_function: () => {
+            return jsPsych.timelineVariable("Phase").includes("Practice");
+        }
+    }
+
+
     // First, letter R indicate that there is a report trial. Then, report trial.
     const if_report_rep = {
-        timeline: [pre_report, report_rep],
+        timeline: [pre_report, report_rep, if_feedback_report],
         conditional_function: () => {
             return report_trial;
         }
@@ -285,8 +321,9 @@ const run_experiment = () => {
         },
         choices: [' '],
         on_finish: () => {
+            correctReport = 0; incorrectReport = 0; // Update counter
             if (jatos_run) {
-                const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+                const results = jsPsych.data.get().filterCustom(filter_custom).json();
                 jatos.submitResultData(results);
             }
         }
@@ -321,7 +358,7 @@ const run_experiment = () => {
         choices: [" "],
         on_finish: () => {
             if (jatos_run) {
-                const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+                const results = jsPsych.data.get().filterCustom(filter_custom).json();
                 jatos.submitResultData(results);
             }
         }
@@ -336,13 +373,12 @@ const run_experiment = () => {
                 `<p>Has acumulado ${formatting(total_points.toString())} puntos.</p>`;
             return `<p>Acabas de terminar el experimento.</p>
                        ${(gam) ? medal + report_performance(rank) : ""}
-                       <p>Antes de salir de esta página nos gustaría que respondieses unas breves preguntas.</p>
                        <p>Pulsa la barra espaciadora para seguir.</p>`
         },
         choices: [' '],
         on_finish: () => {
             if (jatos_run) {
-                const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+                const results = jsPsych.data.get().filterCustom(filter_custom).json();
                 jatos.submitResultData(results);
             }
             document.body.classList.remove("black");
@@ -444,8 +480,6 @@ const run_experiment = () => {
         }
     }
 
-
-
     const repeat_cal = {
         type: jsPsychHtmlButtonResponse,
         stimulus: () => {
@@ -512,7 +546,7 @@ const run_experiment = () => {
     }
 
     const if_resize = {
-        timeline: [resize, repeat_cal],
+        timeline: [resize, if_repeat_cal],
         loop_function: () => {
             return fail_cal;
         },
@@ -596,13 +630,24 @@ const post_inst_prac = {
                     options: shuffle(['El color del distractor del ensayo anterior', 'La posición del distractor del ensayo anterior', 'La posición del rombo en el ensayo anterior', 'El color del rombo en el ensayo anterior']),
                     required: true,
                     horizontal: false
+                },
+                {
+                    prompt: "¿Qué teclas debes usar en la tarea de reporte para responder?",
+                    name: 'mapping',
+                    options: shuffle(['La letra C y la letra M', 'La letra B y la letra J', 'La letra C y la letra J', 'La letra B y la letra M']),
+                    required: true,
+                    horizontal: false
                 }
+
             ]);
             return arr
         },
         on_finish: (data) => {
             const resp = data.response;
-            fail = resp.whenReport != 'Solo cuando se me presente la letra R en solitario después de un ensayo' || resp.task != 'La posición del distractor del ensayo anterior';
+            const response = (data.task == "L") ? 'La posición del distractor del ensayo anterior' : 'El color del distractor del ensayo anterior';
+            fail = resp.whenReport != 'Solo cuando se me presente la letra R en solitario después de un ensayo' ||
+                resp.task != response ||
+                resp.mapping != 'La letra C y la letra M';
             phase_out = "Practice2";
         }
     };
@@ -642,14 +687,14 @@ const post_inst_prac = {
         questions: () => {
             const arr = shuffle([
                 {
-                    prompt: "¿Qué tecla debes pulsar si se te presenta una linea en posición vertical?",
+                    prompt: "¿Qué tecla debes pulsar si se te presenta una linea en posición vertical en la tarea principal?",
                     name: 'line',
                     options: shuffle(['B', 'J', 'C']),
                     required: true,
                     horizontal: false
                 },
                 {
-                    prompt: "¿A qué estímulo debes atender durante la tarea?",
+                    prompt: "¿A qué estímulo debes atender durante la tarea principal?",
                     name: 'feature',
                     options: shuffle(['Al estímulo con forma de rombo', 'Al estímulo con forma de círculo', 'Al estimulo con un color diferente']),
                     required: true,
@@ -658,7 +703,7 @@ const post_inst_prac = {
                 {
                     prompt: "¿Cuál será tu tarea si se te presenta un ensayo de reporte?",
                     name: 'task',
-                    options: shuffle(["Reportar la localización del distractor", "Reportar el color del distractor", "Reportar la localización del rombo", "Reportar el color del rombo"]),
+                    options: shuffle(["Reportar la localización del distractor en el ensayo anterior", "Reportar el color del distractor en el ensayo anterior", "Reportar la localización del rombo en el ensayo anterior", "Reportar el color del rombo en el ensayo anterior"]),
                     required: true,
                     horizontal: false
                 },
@@ -667,7 +712,8 @@ const post_inst_prac = {
         },
         on_finish: (data) => {
             const resp = data.response;
-            fail = resp.line != 'J' || resp.feature != 'Al estímulo con forma de rombo' || (resp.task != 'Reportar la localización del distractor' && resp.value != undefined);
+            const response = (data.task == "L") ? 'Reportar la localización del distractor en el ensayo anterior' : 'Reportar el color del distractor en el ensayo anterior';
+            fail = resp.line != 'J' || resp.feature != 'Al estímulo con forma de rombo' || (resp.task != response);
             phase_out = "VMAC";
         }
     };
@@ -700,14 +746,12 @@ const post_inst_prac = {
                </div>`
         },
         require_movement: true,
+        slider_width: 750,
         prompt: "<p>Pulsa continuar cuando hayas acabado</p>",
         button_label: "Continuar",
         labels: ["No creo que estuviesen relacionados", "Creo que estaban totalmente relacionados"],
         on_finish: (data) => {
-            jsPsych.data.addProperties({
-                contingency_rating1: data.response,
-            })
-            data.Phase = "Contingency"
+        data.Phase = "Awareness1";
         },
         //post_trial_gap: 500,
     };
@@ -728,6 +772,7 @@ const post_inst_prac = {
                </div>`
         },
         require_movement: true,
+        slider_width: 750,
         labels: () => {
             let arr = [];
             arr[random_high_pos - 1] = `<span id="high-placeholder">50</span> % con el color ${colors_t(colorHigh)}`;
@@ -745,10 +790,7 @@ const post_inst_prac = {
         on_finish: (data) => {
             document.removeEventListener("click", slider_c);
             const out = (random_high_pos == 1) ? 100 - data.response : data.response;
-            jsPsych.data.addProperties({
-                contingency_rating2: out,
-            })
-            data.Phase = "Awareness"
+            data.Phase = "Awareness2";
         },
         //post_trial_gap: 500,
     };
@@ -775,18 +817,14 @@ const post_inst_prac = {
             });
         },
         on_finish: (data) => {
-            jsPsych.data.addProperties({
-                confidence_rating1: data.response,
-            })
-            data.Phase = "Awareness"
-
+            data.Phase = `Confidence${confidence_counter++}`;
         },
         //post_trial_gap: 500,
     };
 
 
     const slider_proc = {
-        timeline: [slider_instr, slide1, slide_confidence, slide2, slide_confidence],
+        timeline: [slider_instr, slide1, slide_confidence, slide2, slide_confidence, quali_text],
     }
 
     const procedure_exp = {
@@ -803,7 +841,7 @@ const post_inst_prac = {
         choices: ["Sí", "No"],
         on_finish: (data) => {
             if (data.response == 0) {
-                jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { Phase: "Report" }]).localSave("csv", "example.csv");
+                jsPsych.data.get().filterCustom(filter_custom).localSave("csv", "example.csv");
             }
         }
     }
@@ -827,8 +865,9 @@ const post_inst_prac = {
     }
 
     timeline.push(check_cond, check, preload, consent_proc,
-        procedure_cal, procedure_prac, procedure_prac2, cond_func,
-        procedure_exp, slider_proc, full_off, questions, if_download);
+        procedure_cal, procedure_prac, cond_func, procedure_prac2,
+        procedure_exp, report, slider_proc, full_off, questions,
+        if_download);
 
     jsPsych.run(timeline);
 }
@@ -838,3 +877,14 @@ if (jatos_run) {
 } else {
     run_experiment();
 }
+
+/* TODO:
+    1. Añadir feedback para la tarea de reporte en los ensayos de práctica. (DONE, pero chequear)
+    2. Asegurarse que las transiciones de color se dan adecuadamente. (Comprobar)
+    3. Si el ultimo trial de la tarea es de reporte, que la transición se de después de dar esa respuesta (DONE, pero chequear).
+    4. Comprobar que todo va como debería ir (fallar la calibración hace que tengas que volver a realizarla, lo mismo con las preguntas tipo test, y comprobar compatibilidad con SONA/Prolific)
+    5. Asegurarnos de que todo se guarda bien en el servidor.
+    6. Una vez comprobado y pilotado el estudio, crear diferentes versiones de la tarea (Española (Madrid y Granada), Inglesa (Amsterdam)). 
+
+    Cosas extra: Usar el sistema de contrabalanceo de JATOS (es más fácil).
+*/

@@ -283,6 +283,32 @@ const color2hex = (color) => {
     }
 }
 
+const pickFile = (counterbalance, task) => {
+    if (task == "L") {
+        switch (counterbalance) {
+            case 0:
+                return "orange_loc.png";
+            case 1:
+                return "blue_loc.png";
+            case 2:
+                return "green_loc.png";
+            default:
+                return "pink_loc.png";
+        }
+    } else {
+        switch (counterbalance) {
+            case 0:
+                return "orange_col.png";
+            case 1:
+                return "blue_col.png";
+            case 2:
+                return "green_col.png";
+            default:
+                return "pink_col.png";
+        }
+    }
+}
+
 // Experiment structure
 /* Coding scheme for the relevant shape target/singleton color in the VMAC phase:
         0: distractor, non-singleton
@@ -552,7 +578,7 @@ const markReportInSubBlock = (trialArray, dpInd, start, end, mustHaveReport) => 
 
 // Function to compute the amount of points earned in each trial
 const compute_points = (rt, condition, phase) => {
-    if (rt === null || phase == "Practice" || phase == "Omission") return 0;
+    if (rt === null || phase.includes("Practice") || phase == "Omission") return 0;
     if (condition == "High" && phase == "Devaluation") return 0;
     const bonus = (condition == "High" && phase != "Extinction") ? 1 : .1;
     const points = Math.floor((1000 - rt) * bonus);
@@ -672,7 +698,7 @@ const randomID = (num = 6, lett = 2) => {
     if (jatos_run) {
         condition = getCond(90);
     } else {
-        condition = (url_cond != undefined) ? capitalize(urlvar.condition) : "A";
+        condition = (url_cond != undefined) ? capitalize(url_cond) : "L";
     }
 
     if (jatos_run && !condition) {
@@ -681,7 +707,7 @@ const randomID = (num = 6, lett = 2) => {
 
     jsPsych.data.addProperties({
         ID: ID,
-        group: condition[0],
+        task: condition[0],
         amuont_checks: condition[1],
     });
 }
@@ -1003,3 +1029,14 @@ const prac_c = () => {
     if (h == null) state = true;
     else state = false;
 }
+
+/*Custom function to filter data
+    Filter trials from main and report trials, together with awareness responses
+*/
+const filter_custom = (data) => {
+    if (!data) return false; // Ensure `data` is not undefined
+    const t_type = data.trial_type;
+    const phase = data.Phase;
+
+    return t_type === "psychophysics" || t_type === "html-slider-response";
+};

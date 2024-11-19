@@ -492,7 +492,6 @@ const resize = {
     }
 };
 
-// TODO: Create practice for the dual task (only 10 trials). New instructions for the dual task and practice. 
 const instructions_prac = {
     type: jsPsychInstructions,
     pages: [
@@ -534,9 +533,19 @@ const instructions_prac = {
     //post_trial_gap: 2000,0
 }
 
+/*(gam)?wrapper(`
+<p>La cantidad de puntos que ganes se traducirá en la obtención de diferentes medallas que irás desbloqueando conforme avance el experimento:</p>
+<img src="src/img/medals/MedalDisplay.jpg" width="700" height="165">
+<p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que al final del experimento te informaremos cómo de bien lo has hecho respecto a otros participantes.</p>`): 
+null, */
+
 const instructions_prac2 = {
     type: jsPsychInstructions,
-    pages: [
+    pages: () => {
+        task = jsPsych.timelineVariable("task");
+        const file = pickFile(counterbalance, task);
+        const color = pickColor(counterbalance)[0];
+        return [
         wrapper(`<p>Ya has terminado con la primera parte de la práctica.</p>
             <p>Ahora vamos a practicar en una situación más similar a lo que te encontrarás durante el experimento</p>`),
         wrapper(`<p>Durante el experimento, podrán aparecer estímulos en colores diferentes al resto:</p>
@@ -545,13 +554,20 @@ const instructions_prac2 = {
             <canvas id="myCanvas2" width="400" height="300" style = "border-radius: 3%; background-color: #000"></canvas>
         </div>
         <p>Estos estímulos tendrán como objetivo distraerte a la hora de atender al rombo, por lo que deberás ignorarlos para poder atender correctamente al rombo. Sin embargo, también tendrán un rol importante en la tarea.</p>`),
-        wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes la localización del estímulo en un color diferente. Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán las 6 posibles posiciones en la que puedo aparecer el distractor, cada una representada con un número:</p>
-        <img src="src/img/location_task.png" width="850" height="450">
-        <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando el teclado numérico. En este caso particular, dado que el distractor se ha presentado en la posición 6, deberías pulsar la tecla 6 en el teclado numérico. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas B y J, las teclas de respuesta de la tarea principal.</p>`), // Conditional text
-        wrapper(`<p>Antes de empezar con el experimento, vas a realizar una breve fase de práctica para que te familiarices con la tarea. Durante la práctica vamos a presentarte esta tarea al final de cada ensayo. A diferencia que en esta práctica, durante el experimento real estos ensayos en los que deberás reportar la localización del distractor ocurrirán de forma muy infrecuente.</p>
-        <p>Para garantizar que has comprendido las instrucciones, vas a responder unas breves preseguntas antes de proceder con la práctica.</p>
-        <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar, pulsa <b>seguir</b>.`)
-    ],
+            (task == "L") ?
+                wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes la localización del estímulo en un color diferente (distractor). Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar un ensayo de la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán las 6 posibles posiciones en la que puedo aparecer el distractor:</p>
+                    <img src="src/img/${file}" width="1000" height="450">
+                    <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando <b> las letras "C" y "M"</b>. <b>Si el distractor se presentó en la parte derecha de la pantalla, pulsa la tecla "C", mientras que sí se presentó en la parte izquierda, pulsa la tecla "M"</b>.</p>
+                    <p>En este caso particular, <b>dado que el distractor se ha presentado a la izquierda, deberías pulsar la tecla "C"</b>. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas "B" y "J", las teclas de respuesta de la tarea principal.</p>`) :
+                wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes el color del distractor en el ensayo previo. Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar un ensayo de la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán dos colores en la pantalla:</p>
+                    <img src="src/img/${file}" width="1000" height="450">
+                <p>Tu tarea consistirá en reportar el color del distractor usando<b> las letras "C" y "M"</b>. <b>Si quieres seleccionar el color de la izquiera, pulsa la tecla "C", mientras que sí quieres seleccionar el color de la izquierda, pulsa la tecla "M"</b>.</p>
+                <p>En este caso particular, <b>dado que el distractor es de color ${colors_t(color)}, deberías pulsar la tecla "C"</b>. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas "B" y "J", las teclas de respuesta de la tarea principal.</p>`), // Conditional text
+            wrapper(`<p>Antes de empezar con el experimento, vas a realizar una breve fase de práctica para que te familiarices con la tarea. Durante la práctica vamos a presentarte esta tarea al final de cada ensayo. A diferencia que en esta práctica, durante el experimento real estos ensayos en los que deberás reportar la localización del distractor ocurrirán de forma muy infrecuente.</p>
+                <p>Para garantizar que has comprendido las instrucciones, vas a responder unas breves preseguntas antes de proceder con la práctica.</p>
+                <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar, pulsa <b>seguir</b>.`)
+        ]
+    },
     allow_keys: false,
     button_label_previous: "Retroceder",
     button_label_next: "Seguir",
@@ -693,14 +709,28 @@ const slider_instr = {
             <p>Antes de finalizar el experimento, vamos a hacerte algunas preguntas sobre algunos aspectos de la tarea que acabas de realizar.</p>`),
         wrapper(`<p>Si recuerdas correctamente, en ciertas ocasiones podías ganar <b>puntos extra</b>.</p>
                     <p>A continuación, vamos a realizarte dos breves cuestiones sobre estas ocasiones en las que podías ganar <b>puntos extra</b>.`),
-        wrapper(`<p>Es importante que respondas a estas preguntas teniendo en cuenta en lo que pensaste o sentiste <b>durante el experimento</b>, no en el momento actual</p>
-            <p>Por favor, responde con sinceridad y evita intentar hacer elaboraciones posteriores. Es decir, si durante el experimento no pensaste sobre las cuestiones, no intentes dar una respuesta al azar. No hay respuestas correctas ni incorrectas, ¡nos interesa tu opinión sincera!</p>,
+        wrapper(`<p>Es importante que respondas a estas preguntas teniendo en cuenta en lo que pensaste o sentiste <b>durante el experimento</b>, no en el momento actual.</p>
+            <p>Por favor, responde con sinceridad y evita intentar hacer elaboraciones posteriores. Es decir, si durante el experimento no pensaste sobre las cuestiones, no intentes dar una respuesta al azar. No hay respuestas correctas ni incorrectas, ¡nos interesa tu opinión sincera!</p>
             <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar con las preguntas, pulsa <b>seguir</b>.`),
             ],
     allow_keys: false,
     button_label_previous: "Retroceder",
     button_label_next: "Seguir",
     show_clickable_nav: true,
+}
+
+const quali_text = {
+  type: jsPsychSurveyText,
+    preamble: `<p>Antes de terminar, vamos a pedirte que describas con tus propias palabras si <b>durante el experimento</b> has pensado si los ensayos en los que podías ganar puntos extra dependían de algo.</p>
+  <p>Por favor, comenta si has pensado sobre esto <b>durante el experimento</b>.</p>`,
+  questions: [
+    {prompt: 'Puedes desarrollar aquí tu respuesta:', rows: 10, columns: 100}
+    ],
+    on_finish: (data) => {
+        jsPsych.data.addProperties({
+            open_response: data.response["Q0"] || "none",
+        })
+    }
 }
 
 /* const slider_instr = {
@@ -761,7 +791,7 @@ const questions = {
         })
         data.response = "none"
         if (jatos_run) {
-            const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+            const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "html-slider-response" }]).json();
             jatos.submitResultData(results);
         }
     }

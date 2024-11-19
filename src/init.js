@@ -29,15 +29,21 @@ const counterbalance = random(0, 4);
 
 console.log(`Counterbalance: ${counterbalance}`)
 
-var trialObj, random_high_pos = random(1, 3), condition, not_consent = false, ID, task = "L";
+var trialObj, random_high_pos = random(1, 3), condition, not_consent = false, ID;
 
 // Preload all images:
-
 const preload = {
     type: jsPsychPreload,
     images: [
         'src/img/dni.jpg',
-        'src/img/location_task.png', //preload images for the location task. TODO: create images for color task.
+        "src/img/orange_loc.png", 
+        "src/img/blue_loc.png",
+        "src/img/pink_loc.png",
+        "src/img/green_loc.png",
+        "src/img/orange_col.png", 
+        "src/img/blue_col.png",
+        "src/img/pink_col.png",
+        "src/img/green_col.png",
         'src/img/medals/MedalDisplay.jpg',
         'src/img/medals/medal0.png',
         'src/img/medals/medal1.png',
