@@ -462,7 +462,7 @@ const resize = {
     blindspot_reps: 5,
     resize_units: "none",
     post_trial_gap: 500,
-    ball_speed: 1,
+    ball_speed: .5,
     viewing_distance_report: "none",
     item_path: 'src/img/dni.jpg',
     adjustment_prompt: `
@@ -660,12 +660,12 @@ const instructions_exp = {
             <p>Por tanto, para maximizar la cantidad de puntos que es posible obtener, intenta responder lo más rápido que puedas sin cometer errores.</p>`),
             wrapper(`
                 <p>Por otro lado,  la cantidad de puntos dependerá de la tarea secundaria que acabas de practicar.</p>
-                <p>A diferencia de la práctica, estos ensayos de reporte ocurriran de forma muy infrecuente. Si respondes correctamente a un ensayo de reporte, al final de cada bloque ganarás un bonus de puntos que se sumará a los puntos totales que hayas ganado. Si respondes incorrectamente se te penalizará con lo que hubieras ganado.</p>
-                <p>Para realizar correctamente el experimento te pedimos que intentes hacer la tarea principal como la tarea secundaria de la mejor forma posible</p>`),
+                <p>A diferencia de la práctica, <b>estos ensayos de reporte ocurriran de forma muy infrecuente</b>. Si respondes correctamente a un ensayo de reporte, <b>al final de cada bloque ganarás un bonus de puntos</b> que se sumará a los puntos totales que hayas ganado. Si respondes incorrectamente se te penalizará con lo que hubieras ganado.</p>
+                <p>Para realizar correctamente el experimento te pedimos que intentes hacer la tarea principal como la tarea secundaria de la mejor forma posible.</p>`),
             (gam)?wrapper(`
             <p>La cantidad de puntos que ganes se traducirá en la obtención de diferentes medallas que irás desbloqueando conforme avance el experimento:</p>
             <img src="src/img/medals/MedalDisplay.jpg" width="700" height="165">
-            <p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que al final del experimento te informaremos cómo de bien lo has hecho respecto a otros participantes.</p>`): 
+            <p>Los puntos necesarios para ganar cada medalla están calibrados sobre la base de estudios previos, por lo que cada medalla es informativa sobre lo bien que lo has hecho comparado a participantes previos.</p>`): 
             null,
             wrapper(`<p>Todo lo demás seguirá siendo exactamente igual. Tu tarea consistirá en <b>determinar la orientación de la línea que se encuentra dentro del rombo</b>.</p>
             <div style = "display: flex; flex-direction: row; justify-content: space-around; margin-top: 30px;">

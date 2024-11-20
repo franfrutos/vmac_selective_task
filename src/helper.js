@@ -1037,7 +1037,5 @@ const prac_c = () => {
 const filter_custom = (data) => {
     if (!data) return false; // Ensure `data` is not undefined
     const t_type = data.trial_type;
-    const phase = data.Phase;
-
     return t_type === "psychophysics" || t_type === "html-slider-response";
 };

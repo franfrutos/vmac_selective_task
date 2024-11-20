@@ -46,7 +46,7 @@ const run_experiment = () => {
     })
 
 
-    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0, confidence_counter = 1, currentPhase = "Practice";
+    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0, confidence_counter = 1, currentPhase = "Practice", meanAccPrac = 0, meanReportAccPrac = 0, out1 = false, out2 = false;
 
     const trial = {
         type: jsPsychPsychophysics,
@@ -99,7 +99,17 @@ const run_experiment = () => {
             pracCorr = sumCorr / trialNum;
             // Report trial?
             report_trial = jsPsych.timelineVariable("reportTrial");
-ç        },
+            if (data.Phase == "Practice2" || data.Phase == "Practice3") {
+                meanAccPrac = jsPsych.data.get()
+                    .filterCustom(trial => trial.Phase === "Practice2" || trial.Phase === "Practice3") // Filter by Phase
+                    .select('correct')
+                    .mean();
+                
+                console.log("Mean main accuracy is ", meanAccPrac);
+                // Continue with the experiment?
+                out1 = (data.Phase == "Practice3" & trialNum == 20 & meanAccPrac < .70) ? true : false;
+            }
+        },
         trial_duration: () => {
             return (jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 3700;
         }, 
@@ -191,16 +201,15 @@ const run_experiment = () => {
             const task = jsPsych.data.get().last(1).values()[0].task;
             if (task == "L") {
                 const log = [0, 0, 0, 0, 0, 0];
-                // Report location
+                // Report location:
                 return draw_display(1.15 * sF, 0.2 * sF, 5.05 * sF, log, // log is not necessary, but throw error if not provided :p
                     jsPsych.timelineVariable("colors"),
                     jsPsych.timelineVariable("orientation"), report_t = true);
             } else {
                 // Report color:
-                // Color position should be random or not?
                 return [
-                    draw_circle2(1.15 * sF, 0.2 * sF, colorHigh, +(3*sF), 0),
-                    draw_circle2(1.15 * sF, 0.2 * sF, colorLow, -(3*sF), 0),
+                    draw_circle2(1.15 * sF, 0.2 * sF, colorHigh, -(3*sF), 0),
+                    draw_circle2(1.15 * sF, 0.2 * sF, colorLow, +(3*sF), 0),
                 ]
             }
         },
@@ -216,6 +225,8 @@ const run_experiment = () => {
         },
         on_finish: (data) => {
             const task = data.task;
+            data.Phase = "Report";
+
             if (task == "L") {
                 [2, 3, 4].includes(jsPsych.timelineVariable("singPos"))
                 data.correct_response = ([2, 3, 4].includes(jsPsych.timelineVariable("singPos"))) ? "c" : "m";
@@ -229,7 +240,19 @@ const run_experiment = () => {
             incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1.
 
             report_trial = jsPsych.timelineVariable("reportTrial");
-            const phase = currentPhase; // This should work
+            const phase = currentPhase;
+            
+            if (phase.includes("Practice")) {
+                meanReportAccPrac = jsPsych.data.get()
+                    .filterCustom(trial => trial.Phase === "Report") // Filter by Phase
+                    .select('correct')
+                    .mean();
+                
+                console.log("Report mean accuracy is ", meanReportAccPrac);
+                // Continue with the experiment?
+                out2 = (phase == "Practice3" & trialNum == 20 & meanReportAccPrac < .70) ? true : false;
+            }
+
             if (trialNum == 10 & phase == "Practice2") {
                 trialNum = 0; BlockNum = 0; correctReport = 0; incorrectReport = 0;
             }
@@ -245,7 +268,6 @@ const run_experiment = () => {
                     document.body.style.cursor = 'auto';
                 }
             }
-            data.Phase = "Report";
         },
 
     };
