@@ -40,13 +40,13 @@ const run_experiment = () => {
 
     // Experimental trial
 
-    // Points necessary for earning medals. If reversal, points cut-offs are increased by a factor of 1.3
+    // Points necessary for earning medals. Due to the dual task, amout of points necessary are increased (by a 20% at each level)
     const points_cut_off = [15500, 27200, 31900, 37300, 40000, 49300, 57000].map((p) => {
-        return (norew == "Reversal" & p != 15500) ? p * 1.3 : p;
+        return (p != 15500) ? p * 1.2 : p;
     })
 
 
-    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0, confidence_counter = 1;
+    let trialNum = 0, total_points = 0, BlockNum = 0, fail = true, cont = false, phase_out = "VMAC", report_trial = false, sumCorr = 0, pracCorr = 0, correctReport = 0, incorrectReport = 0, confidence_counter = 1, currentPhase = "Practice";
 
     const trial = {
         type: jsPsychPsychophysics,
@@ -77,7 +77,7 @@ const run_experiment = () => {
             } else {
                 color = (jsPsych.timelineVariable("condition") == "Low") ? colorHigh : (jsPsych.timelineVariable("condition") == "High")? colorLow: "none";
             }
-
+            currentPhase = jsPsych.timelineVariable("Phase");
             return {
                 tPos: jsPsych.timelineVariable("targetPos"),
                 sPos: jsPsych.timelineVariable("singPos"),
@@ -99,8 +99,7 @@ const run_experiment = () => {
             pracCorr = sumCorr / trialNum;
             // Report trial?
             report_trial = jsPsych.timelineVariable("reportTrial");
-            console.log(trialNum);
-        },
+ç        },
         trial_duration: () => {
             return (jsPsych.timelineVariable("Phase") == "Practice2") ? 10700 : 3700;
         }, 
@@ -229,9 +228,8 @@ const run_experiment = () => {
             correctReport += data.correct; // Update correct reports counter
             incorrectReport += 1 - data.correct; // If data.correct == 1, no updating. Otherwise, counter increase by 1.
 
-            console.log(data.correct);
             report_trial = jsPsych.timelineVariable("reportTrial");
-            const phase = jsPsych.data.get().last(1).values()[0].Phase;
+            const phase = currentPhase; // This should work
             if (trialNum == 10 & phase == "Practice2") {
                 trialNum = 0; BlockNum = 0; correctReport = 0; incorrectReport = 0;
             }
@@ -311,7 +309,7 @@ const run_experiment = () => {
             total_points = total_points + (correctReport + (-incorrectReport)) * 2000;
 
             return `
-                       <p>Has completado ${BlockNum} de ${blocks} bloques.</p>
+                       <p>Has completado ${BlockNum/2} de ${blocks/2} bloques.</p>
                        <p>Has acertado ${correctReport} y fallado ${incorrectReport} ensayos de reporte: ${(correctReport+(-incorrectReport))*2000} puntos.
                        ${`<p>Llevas ${formatting(total_points.toString())} puntos acumulados.</p>`}
                        ${(gam) ? disp_medals + next : ""}
@@ -478,27 +476,6 @@ const run_experiment = () => {
         },
         post_trial_gap: () => {
             return (!fail) ? 1000 : 0;
-        }
-    }
-
-    const repeat_cal = {
-        type: jsPsychHtmlButtonResponse,
-        stimulus: () => {
-            const distance = viewDist;
-            return `<p>Hemos estimado que te encuentras a la siguiente distancia de la pantalla: ${parseInt(distance / 10)} cm. </p>
-            <p>Esto significa que te encuentras muy cerca o muy lejos de la pantalla, o que no hemos conseguido estimar correctamente la distancia real a la que te encuentras.</p>
-            <p>Dado que está calibración es crítica para hacer correctamente el experimento, te vamos a pedir que la vuelvas a realizar.</p>
-            <p>En caso de que realmente te encontrases a esa distancia, por favor, colocate a una distancia de entre <b>35 y 75 cm</b> de la pantalla para poder realizar la tarea con comodidad, y que mantengas una postura similar durante el experimento.</p>`
-        },
-        choices: () => {
-            return  ["Volver a realizar la calibración"];
-        },
-    }
-
-    const if_repeat_cal = {
-        timeline: [repeat_cal],
-        conditional_function: () => {
-            return fail_cal;
         }
     }
 
@@ -865,7 +842,8 @@ const post_inst_prac = {
         choices: ["Salir del experimento"]
     }
 
-    timeline.push(check_cond, check, preload, consent_proc,
+    // Removed consent, add later
+    timeline.push(check_cond, check, preload,
         procedure_cal, procedure_prac, cond_func, procedure_prac2,
         procedure_exp, report, slider_proc, full_off, questions,
         if_download);

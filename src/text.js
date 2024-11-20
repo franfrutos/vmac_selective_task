@@ -41,8 +41,7 @@ const consentInf = {
         El objetivo de este estudio es continuar una investigación ya iniciada sobre la relación entre procesos de distracción visual y memoria, donde se busca estudiar posibles sustratos comunes a ambos procesos. Este estudio lo dirige el Dr. Juan Lupiáñez y su equipo colaborador. El estudio tendrá lugar en modalidad online, en el ordenador personal de la persona que realiza el estudio. 
         </p>
         <p><b>¿Qué procedimientos llevaré a cabo?</b><br>
-        Su participación consistirá en contestar algunas preguntas y realizar sencillas tareas de ordenador en las que debe discriminar y responder a distintos estímulos mientras registramos el tiempo que tarda en emitir una respuesta a cada 
-        estímulo, así como la precisión de la misma. En total el experimento durará aproxamadamente 60 minutos minutos.
+        Su participación consistirá en contestar algunas preguntas y realizar unas sencillas tareas de ordenador en las que debe discriminar y responder a distintos estímulos mientras registramos el tiempo que tarda en emitir una respuesta a cada estímulo, así como la precisión de la misma. En total el experimento durará aproximadamente 40 minutos.
         </p>
         <p><b>¿Tiene algún inconveniente participar en el estudio?</b><br>
         La tarea de ordenador no presenta ningún inconveniente para el participante, más allá del cansancio que éste pueda sentir por realizar una tarea monótona de ordenador.
@@ -463,7 +462,7 @@ const resize = {
     blindspot_reps: 5,
     resize_units: "none",
     post_trial_gap: 500,
-    ball_speed: .5,
+    ball_speed: 1,
     viewing_distance_report: "none",
     item_path: 'src/img/dni.jpg',
     adjustment_prompt: `
@@ -480,22 +479,46 @@ const resize = {
     <li>Tápate el ojo derecho con la mano derecha.</li>
     <li>Atiende al cuadrado negro con el ojo izquierdo mientras mantienes tu cabeza orientada al centro de la pantalla. No dejes de mirarlo.</li>
     <li>Cuando pulses la barra espaciadora el <b style = "color:red;">círculo rojo</b> comenzará a moverse. Atiendelo de reojo.</li>
-    <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, al menos durante 1 segundo, no en cuanto desaparezca.</li>
+    <li>Pulsa la barra espaciadora cuando percibas que el círculo desaparece con seguridad, <b>al menos durante 1 segundo</b>), no en cueanto desaparezca.</li>
     </div>
     </ol>
     <p style = "margin-bottom: 30px;">Pulsa la barra espaciadora para empezar.</p>`,
     blindspot_measurements_prompt: `repeticiones pendientes: `,
     on_finish: (data) => {
         viewDist = data.view_dist_mm;
-        fail_cal = (data.view_dist_mm < 350 || data.view_dist_mm > 750);
+        console.log(`Participant viewing distance: ${viewDist}.`)
+        console.log(`Participant px2deg: ${data.px2deg}.`)
+        fail_cal = (data.view_dist_mm < 390 || data.view_dist_mm > 660);
         if (!fail_cal) {
             jsPsych.data.addProperties({
                 px2deg: data.px2deg,
                 viewing_distance: data.view_dist_mm,
             });
-        };
+        } else {
+            console.log(`Redo calibration.`)
+        }
     }
 };
+const repeat_cal = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: () => {
+            const distance = viewDist;
+            return `<p>Hemos estimado que te encuentras a la siguiente distancia de la pantalla: ${parseInt(distance / 10)} cm.</p>
+            <p>Esto significa que te encuentras muy cerca o muy lejos de la pantalla, o que no hemos conseguido estimar correctamente la distancia real a la que te encuentras.</p>
+            <p>Dado que está calibración es crítica para hacer correctamente el experimento, te vamos a pedir que la vuelvas a realizar.</p>
+            <p>En caso de que realmente te encontrases a ${parseInt(distance / 10)} cm de la pantalla, por favor, colocate a una distancia de entre <b> 40 y 65 cm</b> para poder realizar la tarea con comodidad, y que mantengas una postura similar durante el experimento.</p>`
+        },
+        choices: () => {
+            return  ["Volver a realizar la calibración"];
+        },
+    }
+
+    const if_repeat_cal = {
+        timeline: [repeat_cal],
+        conditional_function: () => {
+            return fail_cal;
+        }
+    }
 
 const instructions_prac = {
     type: jsPsychInstructions,
@@ -541,7 +564,7 @@ const instructions_prac = {
 const instructions_prac2 = {
     type: jsPsychInstructions,
     pages: () => {
-        task = jsPsych.timelineVariable("task");
+        // Task is a global variable now
         const file = pickFile(counterbalance, task);
         const color = pickColor(counterbalance)[0];
         return [
@@ -555,11 +578,11 @@ const instructions_prac2 = {
         <p>Estos estímulos tendrán como objetivo distraerte a la hora de atender al rombo, por lo que deberás ignorarlos para poder atender correctamente al rombo. Sin embargo, también tendrán un rol importante en la tarea.</p>`),
             (task == "L") ?
                 wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes la localización del estímulo en un color diferente (distractor). Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar un ensayo de la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán las 6 posibles posiciones en la que puedo aparecer el distractor:</p>
-                    <img src="src/img/${file}" width="1000" height="450">
-                    <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando <b> las letras "C" y "M"</b>. <b>Si el distractor se presentó en la parte derecha de la pantalla, pulsa la tecla "C", mientras que sí se presentó en la parte izquierda, pulsa la tecla "M"</b>.</p>
+                    <img src="src/img/${file}" width="1200" height="450">
+                    <p>Tu tarea consistirá en reportar la posición del distractor de otro color utilizando <b> las letras "C" y "M"</b>. <b>Si el distractor se presentó en la parte izquierda de la pantalla, pulsa la tecla "C", mientras que sí se presentó en la parte derecha, pulsa la tecla "M"</b>.</p>
                     <p>En este caso particular, <b>dado que el distractor se ha presentado a la izquierda, deberías pulsar la tecla "C"</b>. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas "B" y "J", las teclas de respuesta de la tarea principal.</p>`) :
                 wrapper(`<p>En algunos ensayos durante el experimento se te pedirá que reportes el color del distractor en el ensayo previo. Sabrás que tienes que realizar esta tarea porque <b>se te presentará la letra R en solitario depués de realizar un ensayo de la tarea principal</b> que has realizado durante la práctica anterior. Seguidamente, aparecerán dos colores en la pantalla:</p>
-                    <img src="src/img/${file}" width="1000" height="450">
+                    <img src="src/img/${file}" width="1200" height="450">
                 <p>Tu tarea consistirá en reportar el color del distractor usando<b> las letras "C" y "M"</b>. <b>Si quieres seleccionar el color de la izquiera, pulsa la tecla "C", mientras que sí quieres seleccionar el color de la izquierda, pulsa la tecla "M"</b>.</p>
                 <p>En este caso particular, <b>dado que el distractor es de color ${colors_t(color)}, deberías pulsar la tecla "C"</b>. Después de responder tendrás un tiempo para volver a colocar los dedos sobre las teclas "B" y "J", las teclas de respuesta de la tarea principal.</p>`), // Conditional text
             wrapper(`<p>Antes de empezar con el experimento, vas a realizar una breve fase de práctica para que te familiarices con la tarea. Durante la práctica vamos a presentarte esta tarea al final de cada ensayo. A diferencia que en esta práctica, durante el experimento real estos ensayos en los que deberás reportar la localización del distractor ocurrirán de forma muy infrecuente.</p>

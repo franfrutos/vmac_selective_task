@@ -8,7 +8,7 @@ const jsPsych = initJsPsych({
     on_finish: () => {
         if (window.jatos) {
             finishCond();
-            const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+            const results = jsPsych.data.get().filterCustom(filter_custom).json();
             jatos.submitResultData(results)
                 .then(jatos.startNextComponent)
                 .catch(() => console.log("Something went wrong"));    
@@ -29,7 +29,7 @@ const counterbalance = random(0, 4);
 
 console.log(`Counterbalance: ${counterbalance}`)
 
-var trialObj, random_high_pos = random(1, 3), condition, not_consent = false, ID, viewDist;
+var trialObj, random_high_pos = random(1, 3), task, not_consent = false, ID, viewDist;
 
 // Preload all images:
 const preload = {

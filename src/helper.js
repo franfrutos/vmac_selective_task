@@ -704,11 +704,12 @@ const randomID = (num = 6, lett = 2) => {
     if (jatos_run && !condition) {
         jsPsych.run([limit]);
     }
-
+    
+      // Assign to global variable and put condition in the data
+    task = condition
     jsPsych.data.addProperties({
         ID: ID,
-        task: condition[0],
-        amuont_checks: condition[1],
+        task: condition,
     });
 }
 
