@@ -10,7 +10,9 @@ const jsPsych = initJsPsych({
             finishCond();
             const results = jsPsych.data.get().filterCustom(filter_custom).json();
             jatos.submitResultData(results)
-                .then(jatos.startNextComponent)
+            jatos.submitResultData(results)
+                .then(jatos.endStudyAjax)
+                .then(() => { window.location.href = `https://ugr-cimcyc.sona-systems.com/webstudy_credit.aspx?experiment_id=162&credit_token=1e2255aae6db4651b488c92afb98e7c7&survey_code=${ID}` })
                 .catch(() => console.log("Something went wrong"));    
         }
     }

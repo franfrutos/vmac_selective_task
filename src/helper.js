@@ -654,8 +654,8 @@ const getCond = (N) => {
 }
 
 const finishCond = () => {
-    const counterF = Number(jatos.batchSession.find("/counterF/"+condition)) + 1;
-    jatos.batchSession.replace("/counterF/"+condition, counterF) //Don't use' ";"
+    const counterF = Number(jatos.batchSession.find("/counterF/"+task)) + 1;
+    jatos.batchSession.replace("/counterF/"+task, counterF) //Don't use' ";"
         .then(() => console.log("Batch Session was successfully updated"))
         // .then(() => {if (persistent.counterF == 2) jatos.batchSession.move("/pending/" + persistent.randomCond, "/finished/0")
         //     .then(() => console.log("Done"))
@@ -670,7 +670,7 @@ const finishCond = () => {
 const studyEnd = (href = null) => {
     if (window.jatos) {
         if (end == false) finishCond();
-        const results = jsPsych.data.get().filter([{ trial_type: "psychophysics" }, { trial_type: "survey-html-form" }]).json();
+        const results = jsPsych.data.get().filterCustom(filter_custom).json();
         jatos.submitResultData(results)
             .then((end)?jatos.endStudyAjax:jatos.startNextComponent)
             .then(() => {if (href != null) window.location.href = href })
@@ -696,7 +696,7 @@ const randomID = (num = 6, lett = 2) => {
 
   const assign_condition = (url_cond) => {
     if (jatos_run) {
-        condition = getCond(90);
+        condition = getCond(30);
     } else {
         condition = (url_cond != undefined) ? capitalize(url_cond) : "L";
     }
