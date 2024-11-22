@@ -696,7 +696,7 @@ const randomID = (num = 6, lett = 2) => {
 
   const assign_condition = (url_cond) => {
     if (jatos_run) {
-        condition = getCond(30);
+        condition = getCond(20);
     } else {
         condition = (url_cond != undefined) ? capitalize(url_cond) : "L";
     }
