@@ -12,7 +12,7 @@ const jsPsych = initJsPsych({
             jatos.submitResultData(results)
             jatos.submitResultData(results)
                 .then(jatos.endStudyAjax)
-                .then(() => { window.location.href = `https://ugr-cimcyc.sona-systems.com/webstudy_credit.aspx?experiment_id=162&credit_token=1e2255aae6db4651b488c92afb98e7c7&survey_code=${ID}` })
+                .then(() => { window.location.href = `https://ugr-cimcyc.sona-systems.com/webstudy_credit.aspx?experiment_id=431&credit_token=1536126f82cc41f19072a0abe0663ce4&survey_code=${ID}` })
                 .catch(() => console.log("Something went wrong"));    
         }
     }
