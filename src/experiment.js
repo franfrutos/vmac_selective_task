@@ -762,7 +762,7 @@ const post_inst_prac = {
         stimulus: () => {
             random_high_pos = random(1, 3);
             return `<div style="width:auto; margin-bottom: 50px;">
-               <p>¿Qué porcentaje de ensayos bonus crees que se ha producido cuando el distractor se presentaba con cada color?</p>
+               <p>¿Qué porcentaje de ensayos en los que podías ganar <b>puntos extra</b> crees que se han producido cuando el distractor se presentaba con cada color?</p>
                <div style="width:240px; float: left;">
                    <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
                </div>
@@ -790,6 +790,7 @@ const post_inst_prac = {
         on_finish: (data) => {
             document.removeEventListener("click", slider_c);
             const out = (random_high_pos == 1) ? 100 - data.response : data.response;
+            data.response = out;
             data.Phase = "Awareness2";
         },
         //post_trial_gap: 500,
