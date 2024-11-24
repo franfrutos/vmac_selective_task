@@ -742,14 +742,14 @@ const post_inst_prac = {
         stimulus: () => {
             random_high_pos = random(1, 3);
             return `<div style="width:auto; margin-bottom: 50px;">
-               <p>Durante el experimento, ¿pensaste que el color de los distractores estaba relacionado con los ensayos en los que podías ganar puntos extra de alguna manera?</p>
+               <p>Durante el experimento, ¿pensaste que el color en el que se presentaba el distractor estaba relacionado con los ensayos en los que podías ganar o perder <b>puntos extra</b> de alguna manera?</p>
                </div>`
         },
         require_movement: true,
         slider_width: 750,
         prompt: "<p>Pulsa continuar cuando hayas acabado</p>",
         button_label: "Continuar",
-        labels: ["No creo que estuviesen relacionados", "Creo que estaban totalmente relacionados"],
+        labels: ["No creo que estuviese relacionado", "Creo que estaba totalmente relacionado"],
         on_finish: (data) => {
         data.Phase = "Awareness1";
         },
@@ -762,7 +762,7 @@ const post_inst_prac = {
         stimulus: () => {
             random_high_pos = random(1, 3);
             return `<div style="width:auto; margin-bottom: 50px;">
-               <p>¿Qué porcentaje de ensayos en los que podías ganar <b>puntos extra</b> crees que se han producido cuando el distractor se presentaba con cada color?</p>
+               <p>¿Qué porcentaje de ensayos en los que podías ganar o perder <b>puntos extra</b> crees que se han producido cuando el distractor se presentaba con cada color?</p>
                <div style="width:240px; float: left;">
                    <canvas id="myCanvas${random_high_pos}" width="150" height="150" style = "border-radius: 3%; background-color: #fff; margin: 10px 0;"></canvas>
                </div>
@@ -834,7 +834,6 @@ const post_inst_prac = {
         randomize_order: false,
         //post_trial_gap: 1000,
     }
-
 
     const download = {
         type: jsPsychHtmlButtonResponse,

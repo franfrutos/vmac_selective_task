@@ -728,11 +728,11 @@ const slider_instr = {
     type: jsPsychInstructions,
     pages:  [
         wrapper(`<p>Ya has terminado el experimento, ¡muy bien!</p>
-            <p>Antes de finalizar el experimento, vamos a hacerte algunas preguntas sobre algunos aspectos de la tarea que acabas de realizar.</p>`),
-        wrapper(`<p>Si recuerdas correctamente, en ciertas ocasiones podías ganar <b>puntos extra</b>.</p>
-                    <p>A continuación, vamos a realizarte dos breves cuestiones sobre estas ocasiones en las que podías ganar <b>puntos extra</b>.`),
+            <p>Antes de finalizar, vamos a hacerte algunas preguntas sobre algunos aspectos de la tarea que acabas de realizar.</p>`),
+        wrapper(`<p>Si recuerdas correctamente, en ciertas ocasiones podías ganar o perder <b>puntos extra</b>. Estos ensayos ocurrían ocasionalmente, y los puntos que podías ganar o perder, <b>se multiplicaban por 10</b>.</p>
+                    <p>A continuación, vamos a realizarte dos breves cuestiones sobre estas ocasiones en las que podías ganar o perder <b>puntos extra</b>.`),
         wrapper(`<p>Es importante que respondas a estas preguntas teniendo en cuenta en lo que pensaste o sentiste <b>durante el experimento</b>, no en el momento actual.</p>
-            <p>Por favor, responde con sinceridad y evita intentar hacer elaboraciones posteriores. Es decir, si durante el experimento no pensaste sobre las cuestiones, no intentes dar una respuesta al azar. No hay respuestas correctas ni incorrectas, ¡nos interesa tu opinión sincera!</p>
+            <p>Por favor, responde con sinceridad e intenta evitar hacer elaboraciones posteriores. Es decir, si durante el experimento no pensaste sobre las cuestiones que te vamos a preguntar, no intentes dar una respuesta al azar. No hay respuestas correctas ni incorrectas, ¡nos interesa tu opinión sincera!</p>
             <p>Si quieres repasar las instrucciones, pulsa <b>retroceder</b>. Si quieres continuar con las preguntas, pulsa <b>seguir</b>.`),
             ],
     allow_keys: false,
@@ -743,8 +743,8 @@ const slider_instr = {
 
 const quali_text = {
   type: jsPsychSurveyText,
-    preamble: `<p>Antes de terminar, vamos a pedirte que describas con tus propias palabras si <b>durante el experimento</b> has pensado si los ensayos en los que podías ganar puntos extra dependían de algo.</p>
-  <p>Por favor, comenta si has pensado sobre esto <b>durante el experimento</b>.</p>`,
+    preamble: `<p>Antes de terminar, vamos a pedirte que describas con tus propias palabras si <b>durante el experimento</b> has pensado si los ensayos en los que podías ganar o perder puntos extra dependían de algo.</p>
+  <p>Por favor, escribe si has pensado sobre esto <b>durante el experimento</b>. Nos interesa que nos cuentes cualquier pensamiento espontaneo que hayas podido tener. Si no has pensado sobre esta cuestión, también te agradecemos que lo escribas explicitamente.</p>`,
   questions: [
     {prompt: 'Puedes desarrollar aquí tu respuesta:', rows: 10, columns: 100}
     ],
